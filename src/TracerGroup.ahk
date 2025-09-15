@@ -21,7 +21,7 @@ class TracerGroup extends TracerBase {
         if this.HistoryActive {
             this.History := []
         }
-        this.Tools := TracerTools(Options)
+        this.Tools := TracerTools(this.Options)
     }
     /**
      * Returns an instance of {@link Tracer} which inherits the options from this group.
