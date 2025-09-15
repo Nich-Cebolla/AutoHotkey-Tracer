@@ -97,7 +97,7 @@ class TracerOptions extends TracerOptionsBase {
           , MaxFiles: 0
           , MaxSize: 0
           , Name: ''
-          , SetOnExit: true
+          , SetOnExit: 1
         }
         this.DefaultOut := {
             ConditionCallback: ''
@@ -279,9 +279,9 @@ class TracerOptions extends TracerOptionsBase {
      * are differentiated with an integer appended to the end of the file name preceded by a hyphen.
      * The integer increments with each created file.
      *
-     * @param {Boolean} [Options.LogFile.SetOnExit = true] - If true, every time a file is opened by
-     * {@link TracerLogFile}, an `OnExit` callback is set which will close the log file if it is
-     * still open at the time the script exits.
+     * @param {Integer} [Options.LogFile.SetOnExit = 1] - If nonzero, this value is passed to
+     * `OnExit` to set a callback function which closes the log file if it is open at the time the
+     * script exits.
      *
      * ## Options.Out
      *

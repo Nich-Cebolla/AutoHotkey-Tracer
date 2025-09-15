@@ -14,14 +14,16 @@
 class TracerGroup extends TracerBase {
     /**
      * @param {TracerOptions} Options - The {@link TracerOptions} object.
+     * @param {Boolean} [NewFile = false] - If true, forces {@link TracerLogFile} to open a new
+     * file regardless of `Options.LogFile.MaxSize`.
      */
-    __New(Options?) {
+    __New(Options?, NewFile := false) {
         this.Options := Options ?? TracerOptions()
         this.Index := 0
         if this.HistoryActive {
             this.History := []
         }
-        this.Tools := TracerTools(this.Options)
+        this.Tools := TracerTools(this.Options, NewFile)
     }
     /**
      * Returns an instance of {@link Tracer} which inherits the options from this group.

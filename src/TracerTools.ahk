@@ -1,10 +1,15 @@
 ﻿
 class TracerTools extends TracerToolsBase {
-    __New(Options) {
+    /**
+     * @param {TracerOptions} Options - The {@link TracerOptions} object.
+     * @param {Boolean} [NewFile = false] - If true, forces {@link TracerLogFile} to open a new
+     * file regardless of `Options.LogFile.MaxSize`.
+     */
+    __New(Options, NewFile := false) {
         this.Options := Options
         this.GetFormatStrConstructor()
         if Options.HasValidLogFileOptions {
-            this.GetLogFile()
+            this.GetLogFile(, , NewFile)
         }
         this.SetIndentLen(Options.Tracer.IndentLen)
         this.SetJsonPropertiesLog()
@@ -57,7 +62,7 @@ class TracerToolsBase {
     GetFormatStrOut() {
         this.FormatStrOut := this.FormatStrConstructor.Call(this.Options.Out.Format)
     }
-    GetLogFile(Dir?, Name?) {
+    GetLogFile(Dir?, Name?, NewFile := false) {
         if IsSet(Dir) {
             this.Options.LogFile.Dir := Dir
         }
@@ -70,7 +75,7 @@ class TracerToolsBase {
         if this.LogFile {
             this.LogFile.Close()
         }
-        this.LogFile := TracerLogFile(this.Options)
+        this.LogFile := TracerLogFile(this.Options, NewFile)
         this.GetFormatStrLog()
     }
     SetIndentLen(IndentLen) {

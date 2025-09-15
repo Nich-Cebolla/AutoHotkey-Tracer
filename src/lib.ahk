@@ -306,16 +306,6 @@ Tracer_ThrowUnexpectedOptionName(Name, n := 2) {
     throw PropertyError('Unexpected option name.', n, Name)
 }
 
-Tracer_SetOnExitHandler(FileObj) {
-    handler := Tracer_FileCloseOnExit.Bind(FileObj)
-    OnExit(handler, 1)
-    return handler
-}
-
-Tracer_FileCloseOnExit(FileObj, *) {
-    FileObj.Close()
-}
-
 Tracer_GetJsonPropertiesFormatString(JsonProperties, IndentLen, InitialIndent) {
     ind := ''
     loop indentLen {

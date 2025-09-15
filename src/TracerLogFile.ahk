@@ -4,12 +4,15 @@ class TracerLogFile {
         this.DeleteProp('__New')
         proto := this.Prototype
         proto.NewJsonFile := proto.File := proto.HandlerOnExit := proto.Options := ''
-        proto.StartByte := 0
+        proto.StartByte := proto.__OnExitStarted := 0
     }
     /**
      * @param {TracerOptions} Options - The options object. See {@link TracerOptions}.
+     *
+     * @param {Boolean} [NewFile = false] - If true, forces {@link TracerLogFile} to open a new
+     * file regardless of `Options.LogFile.MaxSize`.
      */
-    __New(Options) {
+    __New(Options, NewFile := false) {
         if !Options.HasValidLogFileOptions {
             throw PropertyError('``Options.LogFile.Dir`` and ``Options.LogFile.Name`` are required to call ``TracerLogFile.Prototype.__New``.', -1)
         }
@@ -21,6 +24,9 @@ class TracerLogFile {
         this.SetEncoding(this.Options.LogFile.Encoding)
         this.CheckDir(&greatestIndex)
         this.Index := greatestIndex
+        if NewFile {
+            ++this.Index
+        }
         this.Open(this.Options.LogFile.SetOnExit)
     }
     CheckDir(&OutGreatestIndex?, RemoveAdditionalFiles := 0) {
@@ -225,6 +231,10 @@ class TracerLogFile {
         f.Close()
         return result
     }
+    OnExit(*) {
+        this.Close()
+        this.__OnExitStarted := 1
+    }
     Open(SetOnExit := 1) {
         this.StartByte := this.GetStartByte()
         if FileExist(this.Path) {
@@ -262,7 +272,7 @@ class TracerLogFile {
         }
         this.File := FileOpen(this.Path, 'a', this.Encoding)
         if SetOnExit {
-            this.SetOnExitHandler(1)
+            this.SetOnExitHandler(SetOnExit)
         }
     }
     /**
@@ -353,13 +363,23 @@ class TracerLogFile {
     }
     SetOnExitHandler(Value := 1) {
         if Value {
-            if IsObject(this.HandlerOnExit) {
-                OnExit(this.HandlerOnExit, 1)
-            } else {
-                this.HandlerOnExit := Tracer_SetOnExitHandler(this.File)
+            if !IsObject(this.HandlerOnExit) {
+                ; This creates a reference cycle.
+                this.HandlerOnExit := ObjBindMethod(this, 'OnExit')
+                ObjRelease(ObjPtr(this))
             }
+            OnExit(this.HandlerOnExit, Value)
         } else if IsObject(this.HandlerOnExit) {
             OnExit(this.HandlerOnExit, Value)
+            if this.HasOwnProp('HandlerOnExit') {
+                ObjPtrAddRef(this)
+                this.DeleteProp('HandlerOnExit')
+            }
+        }
+    }
+    __Delete() {
+        if this.HasOwnProp('HandlerOnExit') && IsObject(this.HandlerOnExit) {
+            ObjPtrAddRef(this)
             this.DeleteProp('HandlerOnExit')
         }
     }

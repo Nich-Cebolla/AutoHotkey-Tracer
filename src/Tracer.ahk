@@ -39,8 +39,11 @@ class Tracer extends TracerBase {
      * @param {TracerTools} [Tools] - If set, the {@link TracerTools} object that this instance
      * of {@link Tracer} will use. If unset, a new {@link TracerTools} instance will be created
      * and set to property {@link Tracer#Tools}.
+     *
+     * @param {Boolean} [NewFile = false] - If true, forces {@link TracerLogFile} to open a new
+     * file regardless of `Options.LogFile.MaxSize`.
      */
-    __New(Id, Options?, Tools?) {
+    __New(Id, Options?, Tools?, NewFile := false) {
         this.Id := Id
         this.Options := Options ?? TracerOptions()
         if this.HistoryActive {
@@ -49,7 +52,7 @@ class Tracer extends TracerBase {
         if IsSet(Tools) {
             this.Tools := Tools
         } else {
-            this.Tools := TracerTools(Options)
+            this.Tools := TracerTools(Options, NewFile)
         }
         this.Index := 0
         this.Prototype := {
@@ -67,7 +70,9 @@ class Tracer extends TracerBase {
     }
     Log(Message := '', SnapshotObj?, Extra := '', What?) {
         if !this.Tools.LogFileOpen {
+            flag_onExitStarted := this.Tools.LogFile.__OnExitStarted
             this.Tools.GetLogFile()
+            this.Tools.LogFile.__OnExitStarted := flag_onExitStarted
         }
         if IsObject(this.Options.Log.ConditionCallback) {
             if !this.Options.Log.ConditionCallback.Call(this) {
@@ -88,6 +93,9 @@ class Tracer extends TracerBase {
         unit.Log()
         if this.HistoryActive {
             this.HistoryAdd(unit)
+        }
+        if this.Tools.LogFile.__OnExitStarted {
+            this.Tools.LogFile.Close()
         }
         return unit
     }
