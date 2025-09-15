@@ -15,8 +15,8 @@ class TracerGroup extends TracerBase {
     /**
      * @param {TracerOptions} Options - The {@link TracerOptions} object.
      */
-    __New(Options) {
-        this.Options := Options
+    __New(Options?) {
+        this.Options := Options ?? TracerOptions()
         this.Index := 0
         if this.HistoryActive {
             this.History := []

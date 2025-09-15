@@ -32,7 +32,7 @@ class Tracer extends TracerBase {
     /**
      * @param {String} Id - A unique identifier.
      *
-     * @param {TracerOptions|TracerOptionsInheritor} Options - The options object. See
+     * @param {TracerOptions|TracerOptionsInheritor} [Options] - The options object. See
      * {@link TracerOptions} and {@link TracerOptionsInheritor} for details about the available
      * options.
      *
@@ -40,9 +40,9 @@ class Tracer extends TracerBase {
      * of {@link Tracer} will use. If unset, a new {@link TracerTools} instance will be created
      * and set to property {@link Tracer#Tools}.
      */
-    __New(Id, Options, Tools?) {
+    __New(Id, Options?, Tools?) {
         this.Id := Id
-        this.Options := Options
+        this.Options := Options ?? TracerOptions()
         if this.HistoryActive {
             this.History := []
         }
