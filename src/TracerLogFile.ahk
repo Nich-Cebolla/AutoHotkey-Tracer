@@ -4,7 +4,7 @@ class TracerLogFile {
         this.DeleteProp('__New')
         proto := this.Prototype
         proto.NewJsonFile := proto.File := proto.HandlerOnExit := proto.Options := ''
-        proto.StartByte := proto.__OnExitStarted := 0
+        proto.StartByte := proto.flag__OnExitStarted := 0
     }
     /**
      * @param {TracerOptions} Options - The options object. See {@link TracerOptions}.
@@ -231,9 +231,18 @@ class TracerLogFile {
         f.Close()
         return result
     }
+    /**
+     * Disclaimer: Calling this sets a property {@link TracerLogFile#flag__OnExitStarted} which
+     * forces {@link Tracer.Prototype.Log} to call {@link TracerLogFile.Prototype.Close} every
+     * time. This is necessary to ensure that the log file is closed correctly even when the log
+     * file is reopened after {@link TracerLogFile.Prototype.OnExit} executes. However, there
+     * is no code that switches this flag off. If there is a possibility {@link TracerLogFile.Prototype.OnExit}
+     * is called but then the script does not exit, you may want to include a line of code that
+     * sets {@link TracerLogFile#flag__OnExitStarted} to 0.
+     */
     OnExit(*) {
         this.Close()
-        this.__OnExitStarted := 1
+        this.flag__OnExitStarted := 1
     }
     Open(SetOnExit := 1) {
         this.StartByte := this.GetStartByte()

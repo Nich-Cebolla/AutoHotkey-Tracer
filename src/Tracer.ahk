@@ -70,9 +70,9 @@ class Tracer extends TracerBase {
     }
     Log(Message := '', SnapshotObj?, Extra := '', What?) {
         if !this.Tools.LogFileOpen {
-            flag_onExitStarted := this.Tools.LogFile.__OnExitStarted
+            flag_onExitStarted := this.Tools.LogFile.flag__OnExitStarted
             this.Tools.GetLogFile()
-            this.Tools.LogFile.__OnExitStarted := flag_onExitStarted
+            this.Tools.LogFile.flag__OnExitStarted := flag_onExitStarted
         }
         if IsObject(this.Options.Log.ConditionCallback) {
             if !this.Options.Log.ConditionCallback.Call(this) {
@@ -94,7 +94,7 @@ class Tracer extends TracerBase {
         if this.HistoryActive {
             this.HistoryAdd(unit)
         }
-        if this.Tools.LogFile.__OnExitStarted {
+        if this.Tools.LogFile.flag__OnExitStarted {
             this.Tools.LogFile.Close()
         }
         return unit
