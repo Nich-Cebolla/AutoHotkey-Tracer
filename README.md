@@ -1,5 +1,5 @@
 
-# AutoHotkey-Tracer
+# AutoHotkey-Tracer - v1.0.1
 
 An AutoHotkey (AHK) class that simplifies sending structured output via OutputDebug and logging to file.
 
@@ -167,7 +167,6 @@ formatString := (
 )
 ```
 
-
 ## Further customization
 
 `FormatStr` is a library intended to allow the user to define their own text formatting logic using
@@ -217,3 +216,10 @@ second parameter to have its properties and items serialized and included in the
 
 You can fine-tune what gets included in the snapshot with `StringifyAll`'s many options. See
 [the documentation](https://github.com/Nich-Cebolla/StringifyAll) for details.
+
+# Changelog
+
+**2025-09-16**: v1.0.1
+- Added `Options.Log.Critical`.
+- Added `Options.LogFile.Critical`.
+- Added `Options.Out.Critical`.

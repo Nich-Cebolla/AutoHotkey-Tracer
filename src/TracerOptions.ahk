@@ -86,6 +86,7 @@ class TracerOptions extends TracerOptionsBase {
         }
         this.DefaultLog := {
             ConditionCallback: ''
+          , Critical: -1
           , Format: this.DefaultLogFormat
           , ToJson: false
           , JsonProperties: this.DefaultJsonProperties
@@ -97,10 +98,12 @@ class TracerOptions extends TracerOptionsBase {
           , MaxFiles: 0
           , MaxSize: 0
           , Name: ''
+          , OnExitCritical: -1
           , SetOnExit: 1
         }
         this.DefaultOut := {
             ConditionCallback: ''
+          , Critical: -1
           , Format: this.DefaultOutFormat
           , ToJson: false
           , JsonProperties: this.DefaultJsonProperties
@@ -235,6 +238,10 @@ class TracerOptions extends TracerOptionsBase {
      * @param {Object} [Options.Log] - An options object specifying options related to
      * {@link Tracer.Prototype.Log}, which is used to write text to log file.
      *
+     * @param {String} [Options.Log.Critical = -1] - If nonzero, this value is passed to `Critical`
+     * when entering {@link Tracer.Prototype.Log}. When the function exits, `Critical` is set back
+     * to its original value. If zero, `Critical` is not called.
+     *
      * @param {*} [Options.Log.ConditionCallback = ""] - If set, a `Func` or callable object that
      * is called every time {@link Tracer.Prototype.Log} is called. The function is expected to return
      * a nonzero value if {@link Tracer.Prototype.Log} should complete the log action, or the function
@@ -279,6 +286,10 @@ class TracerOptions extends TracerOptionsBase {
      * are differentiated with an integer appended to the end of the file name preceded by a hyphen.
      * The integer increments with each created file.
      *
+     * @param {Integer} [Options.LogFile.OnExitCritical = -1] - If nonzero, this value is passed to
+     * `Critical` when entering {@link TracerLogFile.Prototype.OnExit}. When the function exits,
+     * `Critical` is set back to its original value. If zero, `Critical` is not called.
+     *
      * @param {Integer} [Options.LogFile.SetOnExit = 1] - If nonzero, this value is passed to
      * `OnExit` to set a callback function which closes the log file if it is open at the time the
      * script exits.
@@ -287,6 +298,10 @@ class TracerOptions extends TracerOptionsBase {
      *
      * @param {Object} [Options.Out] - An options object specifying options related to
      * {@link Tracer.Prototype.Out}, which is used to write text to `OutputDebug`.
+     *
+     * @param {String} [Options.Out.Critical = -1] - If nonzero, this value is passed to `Critical`
+     * when entering {@link Tracer.Prototype.Log}. When the function exits, `Critical` is set back
+     * to its original value. If zero, `Critical` is not called.
      *
      * @param {*} [Options.Out.ConditionCallback = ""] - If set, a `Func` or callable object that
      * is called every time {@link Tracer.Prototype.Out} is called. The function is expected to return

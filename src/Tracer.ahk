@@ -1,14 +1,13 @@
-﻿
+﻿/*
+    Github: https://github.com/Nich-Cebolla/AutoHotkey-Tracer
+    Author: Nich-Cebolla
+    License: MIT
+*/
+
 ; https://github.com/Nich-Cebolla/AutoHotkey-StringifyAll
 ; This is only necessary if your application will use Tracer to serialize object properties /
 ; items when writing to log file.
 #include *i <StringifyAll>
-
-; This library is tested and is working, but usage is somewhat complex and I haven't written all
-; of the documentation for it. Best to see "test\test-Tracer.ahk" for a usage example.
-
-; Also check out "FillStr" which would pair nicely with this library
-; https://github.com/Nich-Cebolla/AutoHotkey-LibV2/blob/main/FillStr.ahk
 
 ; https://github.com/Nich-Cebolla/AutoHotkey-FormatStr
 #include <FormatStr>
@@ -20,7 +19,6 @@
 #include TracerOptions.ahk
 #include TracerTools.ahk
 #include TracerUnit.ahk
-
 
 class Tracer extends TracerBase {
     static __New() {
@@ -69,6 +67,9 @@ class Tracer extends TracerBase {
         ObjSetBase(this.Prototype, TracerUnit.Prototype)
     }
     Log(Message := '', SnapshotObj?, Extra := '', What?) {
+        if this.Options.Log.Critical {
+            previousCritical := Critical(this.Options.Log.Critical)
+        }
         if !this.Tools.LogFileOpen {
             flag_onExitStarted := this.Tools.LogFile.flag__OnExitStarted
             this.Tools.GetLogFile()
@@ -97,9 +98,15 @@ class Tracer extends TracerBase {
         if this.Tools.LogFile.flag__OnExitStarted {
             this.Tools.LogFile.Close()
         }
+        if this.Options.Log.Critical {
+            Critical(previousCritical)
+        }
         return unit
     }
     Out(Message := '', SnapshotObj?, Extra := '', What?) {
+        if this.Options.Out.Critical {
+            previousCritical := Critical(this.Options.Log.Critical)
+        }
         if IsObject(this.Options.Out.ConditionCallback) {
             if !this.Options.Out.ConditionCallback.Call(this) {
                 return 0
@@ -119,6 +126,9 @@ class Tracer extends TracerBase {
         unit.Out()
         if this.HistoryActive {
             this.HistoryAdd(unit)
+        }
+        if this.Options.Out.Critical {
+            Critical(previousCritical)
         }
         return unit
     }

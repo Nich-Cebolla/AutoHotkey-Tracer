@@ -241,8 +241,14 @@ class TracerLogFile {
      * sets {@link TracerLogFile#flag__OnExitStarted} to 0.
      */
     OnExit(*) {
+        if this.Options.LogFile.OnExitCritical {
+            previousCritical := Critical(this.Options.LogFile.OnExitCritical)
+        }
         this.Close()
         this.flag__OnExitStarted := 1
+        if this.Options.LogFile.OnExitCritical {
+            Critical(previousCritical)
+        }
     }
     Open(SetOnExit := 1) {
         this.StartByte := this.GetStartByte()
