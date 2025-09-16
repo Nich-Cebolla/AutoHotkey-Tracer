@@ -87,8 +87,8 @@ The following are the format specifiers used by `Tracer`:
 - **ext**: The file extension.
 - **extra**: The string your code passed to the "Extra" parameter of `Tracer.Prototype.Log` or `Tracer.Prototype.Out`.
 - **id**: The id associated with the `Tracer` instance paired with the unit id. Gets replaced with one of the following:
-  - If property `TracerObj.GroupName` returns an empty string - `TracerObj.Id` ":" `TracerUnitObj.Id`
-  - If property `TracerObj.GroupName` does not return an empty string - `TracerObj.GroupName` ":" `TracerObj.Id` ":" `TracerUnitObj.Id`
+  - If property `Options.TracerGroup.GroupName` returns an empty string - `TracerObj.Id` ":" `TracerUnitObj.UnitId`
+  - If property `Options.TracerGroup.GroupName` does not return an empty string - `Options.TracerGroup.GroupName` ":" `TracerObj.Id` ":" `TracerUnitObj.UnitId`
 - **file**: The file path returned by the error object's "File" property.
 - **filename**: The file name with extension.
 - **filenamenoext**: The file name without extension.
