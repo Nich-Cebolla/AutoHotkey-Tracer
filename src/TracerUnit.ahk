@@ -13,13 +13,14 @@ class TracerUnit extends Error {
     }
     Log() {
         if this.Options.Log.ToJson {
-            if this.Tools.LogFile.NewJsonFile {
+            if this.Tools.LogFile.flag_newJsonFile {
                 this.Tools.LogFile.File.Write('[')
-                this.Tools.LogFile.NewJsonFile := false
+                this.Tools.LogFile.flag_newJsonFile := false
             } else {
+                this.Tools.LogFile.File.Pos -= this.Tools.LogFile.EndByteCount
                 this.Tools.LogFile.File.Write(',')
             }
-            this.Tools.LogFile.File.Write(this.Le this.Tools.FormatStrJsonLog.Call(this))
+            this.Tools.LogFile.File.Write(this.Le this.Tools.FormatStrJsonLog.Call(this) this.Le ']' this.Le)
         } else {
             this.Tools.LogFile.File.Write(this.Tools.FormatStrLog.Call(this) this.Le)
         }
@@ -27,9 +28,9 @@ class TracerUnit extends Error {
     }
     Out() {
         if this.Options.Out.ToJson {
-            OutputDebug(this.Tools.FormatStrJsonOut.Call(this) '`n')
+            OutputDebug(this.Tools.FormatStrJsonOut.Call(this) this.Le)
         } else {
-            OutputDebug(this.Tools.FormatStrOut.Call(this) '`n')
+            OutputDebug(this.Tools.FormatStrOut.Call(this) this.Le)
         }
     }
     Ext {

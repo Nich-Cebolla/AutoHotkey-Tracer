@@ -38,10 +38,21 @@ class Tracer extends TracerBase {
      * of {@link Tracer} will use. If unset, a new {@link TracerTools} instance will be created
      * and set to property {@link Tracer#Tools}.
      *
-     * @param {Boolean} [NewFile = false] - If true, forces {@link TracerLogFile} to open a new
-     * file regardless of `Options.LogFile.MaxSize`.
+     * @param {Integer} [FileAction = 1] - `FileAction` is ignored if `Options.LogFile.Dir` and/or
+     * `Options.LogFile.Name` are not set. `FileAction` is also ignored if `Tools` is set.
+     *
+     * One of the following:
+     * - 1 : Does not open the log file until `Tracer.Prototype.Log` is called. When the file is
+     *       opened, it is opened with standard processing.
+     * - 2 : Does not open the log file until `Tracer.Prototype.Log` is called. When the file is
+     *       opened, a new file is created.
+     * - 3 : Opens the log file immediately. When the file is opened, it is opened with standard
+     *       processing.
+     * - 4 : Creates and opens a new log file immediately.
+     *
+     * See the documentation section "Opening the log file" for a description of "standard processing."
      */
-    __New(Id, Options?, Tools?, NewFile := false) {
+    __New(Id, Options?, Tools?, FileAction := 1) {
         this.Id := Id
         this.Options := Options ?? TracerOptions()
         if this.HistoryActive {
@@ -50,7 +61,7 @@ class Tracer extends TracerBase {
         if IsSet(Tools) {
             this.Tools := Tools
         } else {
-            this.Tools := TracerTools(Options, NewFile)
+            this.Tools := TracerTools(Options, FileAction)
         }
         this.Index := 0
         this.Prototype := {
@@ -67,18 +78,16 @@ class Tracer extends TracerBase {
         ObjSetBase(this.Prototype, TracerUnit.Prototype)
     }
     Log(Message := '', SnapshotObj?, Extra := '', What?) {
-        if this.Options.Log.Critical {
-            previousCritical := Critical(this.Options.Log.Critical)
-        }
         if !this.Tools.LogFileOpen {
-            flag_onExitStarted := this.Tools.LogFile.flag__OnExitStarted
             this.Tools.GetLogFile()
-            this.Tools.LogFile.flag__OnExitStarted := flag_onExitStarted
         }
         if IsObject(this.Options.Log.ConditionCallback) {
             if !this.Options.Log.ConditionCallback.Call(this) {
                 return 0
             }
+        }
+        if this.Options.Log.Critical {
+            previousCritical := Critical(this.Options.Log.Critical)
         }
         unit := Error(Message, What ?? this.DefaultWhat, Extra)
         unit.Time := A_Now
@@ -94,9 +103,6 @@ class Tracer extends TracerBase {
         unit.Log()
         if this.HistoryActive {
             this.HistoryAdd(unit)
-        }
-        if this.Tools.LogFile.flag__OnExitStarted {
-            this.Tools.LogFile.Close()
         }
         if this.Options.Log.Critical {
             Critical(previousCritical)

@@ -14,16 +14,27 @@
 class TracerGroup extends TracerBase {
     /**
      * @param {TracerOptions} Options - The {@link TracerOptions} object.
-     * @param {Boolean} [NewFile = false] - If true, forces {@link TracerLogFile} to open a new
-     * file regardless of `Options.LogFile.MaxSize`.
+     *
+     * @param {Integer} [FileAction = 1] - One of the following:
+     * - 1 : Does not open the log file until `Tracer.Prototype.Log` is called. When the file is
+     *       opened, it is opened with standard processing.
+     * - 2 : Does not open the log file until `Tracer.Prototype.Log` is called. When the file is
+     *       opened, a new file is created.
+     * - 3 : Opens the log file immediately. When the file is opened, it is opened with standard
+     *       processing.
+     * - 4 : Creates and opens a new log file immediately.
+     *
+     * See the documentation section "Opening the log file" for a description of "standard processing."
+     *
+     * `FileAction` is ignored if `Options.LogFile.Dir` and/or `Options.LogFile.Name` are not set.
      */
-    __New(Options?, NewFile := false) {
+    __New(Options?, FileAction := 1) {
         this.Options := Options ?? TracerOptions()
         this.Index := 0
         if this.HistoryActive {
             this.History := []
         }
-        this.Tools := TracerTools(this.Options, NewFile)
+        this.Tools := TracerTools(this.Options, FileAction)
     }
     /**
      * Returns an instance of {@link Tracer} which inherits the options from this group.

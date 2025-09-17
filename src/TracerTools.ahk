@@ -2,14 +2,30 @@
 class TracerTools extends TracerToolsBase {
     /**
      * @param {TracerOptions} Options - The {@link TracerOptions} object.
-     * @param {Boolean} [NewFile = false] - If true, forces {@link TracerLogFile} to open a new
-     * file regardless of `Options.LogFile.MaxSize`.
+     *
+     * @param {Integer} [FileAction = 1] - One of the following:
+     * - 1 : Does not open the log file until `Tracer.Prototype.Log` is called. When the file is
+     *       opened, it is opened with standard processing.
+     * - 2 : Does not open the log file until `Tracer.Prototype.Log` is called. When the file is
+     *       opened, a new file is created.
+     * - 3 : Opens the log file immediately. When the file is opened, it is opened with standard
+     *       processing.
+     * - 4 : Creates and opens a new log file immediately.
+     *
+     * See the documentation section "Opening the log file" for a description of "standard processing."
+     *
+     * `FileAction` is ignored if `Options.LogFile.Dir` and/or `Options.LogFile.Name` are not set.
      */
-    __New(Options, NewFile := false) {
+    __New(Options, FileAction := 1) {
         this.Options := Options
         this.GetFormatStrConstructor()
+        this.flag_fileAction := FileAction
         if Options.HasValidLogFileOptions {
-            this.GetLogFile(, , NewFile)
+            switch FileAction, 0 {
+                case 1, 2: ; do nothing
+                case 3, 4: this.GetLogFile()
+                default: throw ValueError('Unexpected value of ``FileAction``.', -1, FileAction)
+            }
         }
         this.SetIndentLen(Options.Tracer.IndentLen)
         this.SetJsonPropertiesLog()
@@ -43,7 +59,8 @@ class TracerToolsBase {
     static __New() {
         this.DeleteProp('__New')
         proto := this.Prototype
-        proto.LogFile := proto.FormatStrConstructor := proto.FormatStrOut := proto.FormatStrLog := proto.Indent := ''
+        proto.LogFile := proto.FormatStrConstructor := proto.FormatStrOut := proto.FormatStrLog :=
+        proto.Indent := proto.flag_fileAction := ''
     }
     GetFormatStrConstructor() {
         this.FormatStrConstructor := FormatStrConstructor(this.Options.FormatStr.FormatSpecifierNames, this.Options.FormatStr)
@@ -62,7 +79,14 @@ class TracerToolsBase {
     GetFormatStrOut() {
         this.FormatStrOut := this.FormatStrConstructor.Call(this.Options.Out.Format)
     }
-    GetLogFile(Dir?, Name?, NewFile := false) {
+    /**
+     * @param {String} [Dir] - The name of the directory. Setting `Dir` overwrites the value of
+     * `Options.LogFile.Dir`.
+     *
+     * @param {String} [Name] - The name of the directory. Setting `Name` overwrites the value of
+     * `Options.LogFile.Name`.
+     */
+    GetLogFile(Dir?, Name?) {
         if IsSet(Dir) {
             this.Options.LogFile.Dir := Dir
         }
@@ -72,10 +96,11 @@ class TracerToolsBase {
         if !this.Options.HasValidLogFileOptions {
             Tracer_ThrowInvalidLogFileOptions()
         }
-        if this.LogFile {
+        if IsObject(this.LogFile) && IsObject(this.LogFile.File) {
             this.LogFile.Close()
         }
-        this.LogFile := TracerLogFile(this.Options, NewFile)
+        this.LogFile := TracerLogFile(this.Options, this.flag_fileAction = 2 || this.flag_fileAction = 4)
+        this.flag_fileAction := 0
         this.GetFormatStrLog()
     }
     SetIndentLen(IndentLen) {
@@ -101,14 +126,14 @@ class TracerToolsBase {
         Get => this.Options.Tracer.IndentLen
         Set => this.SetIndentLen(Value)
     }
-    LogFileOpen => IsObject(this.LogFile.File)
+    LogFileOpen => IsObject(this.LogFile) && IsObject(this.LogFile.File)
 }
 
 class Tracer_IndentHelper extends Array {
     static __New() {
         this.DeleteProp('__New')
         proto := this.Prototype
-        proto.__IndentLen := ''
+        proto.__IndentLen := proto.FileAction := ''
         proto.DefineProp('ItemHelper', { Call: Array.Prototype.GetOwnPropDesc('__Item').Get })
     }
     __New(IndentLen, IndentChar := '`s') {

@@ -23,9 +23,9 @@ class CustomErrorWindow {
         g.Add('Edit', 'w600 +HScroll -wrap', RegExReplace(this.FormatStr.Call(err), '\R', '`r`n'))
         labels := [ 'Expected', 'Actual' ]
         g.Add('Text', 'w600', 'Expected')
-        g.Add('Edit', 'w600 +HScroll -wrap', RegExReplace(expected, '\R', '`r`n'))
+        g.Add('Edit', 'w600 r15 +HScroll -wrap', RegExReplace(expected, '\R', '`r`n'))
         g.Add('Text', 'w600', 'Actual')
-        g.Add('Edit', 'w600 +HScroll -wrap', RegExReplace(actual, '\R', '`r`n'))
+        g.Add('Edit', 'w600 r15 +HScroll -wrap', RegExReplace(actual, '\R', '`r`n'))
         g.Add('Button', , 'Exit').OnEvent('Click', (*) => ExitApp())
         g.Show()
         sleep 1

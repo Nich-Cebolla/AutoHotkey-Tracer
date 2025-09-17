@@ -3,14 +3,25 @@ class TracerLogFile {
     static __New() {
         this.DeleteProp('__New')
         proto := this.Prototype
-        proto.NewJsonFile := proto.File := proto.HandlerOnExit := proto.Options := ''
-        proto.StartByte := proto.flag__OnExitStarted := 0
+        proto.flag_newJsonFile := proto.File := proto.HandlerOnExit := proto.Options := proto.flag_newFile := ''
+        proto.StartByte := proto.BracketByteCount := proto.LineEndByteCount := proto.EndByteCount := 0
     }
     /**
      * @param {TracerOptions} Options - The options object. See {@link TracerOptions}.
      *
-     * @param {Boolean} [NewFile = false] - If true, forces {@link TracerLogFile} to open a new
-     * file regardless of `Options.LogFile.MaxSize`.
+     * @param {Boolean} [NewFile = false] - If true, the file is opened as a new file. If false,
+     * the most recent file in the directory (as indicated by its index in the file name) is
+     * evaluated:
+     *
+     * If all of the following are true, then the most recent file is opened and used:
+     * - If the file begins and ends with open and close square brackets
+     * - If the value of `Options.Log.ToJson` is true
+     * - If the size of the file is less than `Options.LogFile.MaxSizeand
+     *
+     * Or, if all of the following are true, then the most recent file is opened and used:
+     * - If the file does not begin with or end with open and close square brackets
+     * - If the value of `Options.Log.ToJson` is false
+     * - If the size of the file is less than `Options.LogFile.MaxSize
      */
     __New(Options, NewFile := false) {
         if !Options.HasValidLogFileOptions {
@@ -27,6 +38,7 @@ class TracerLogFile {
         if NewFile {
             ++this.Index
         }
+        this.flag_newFile := NewFile
         this.Open(this.Options.LogFile.SetOnExit)
     }
     CheckDir(&OutGreatestIndex?, RemoveAdditionalFiles := 0) {
@@ -43,12 +55,10 @@ class TracerLogFile {
     }
     CheckFile() {
         if this.MaxSize > 0 && this.File.Length > this.MaxSize {
-            this.Close()
+            this.File.Close()
             this.CheckDir(, 1)
-            this.NewJsonFile := 1
             ++this.Index
             this.File := FileOpen(this.Path, 'a', this.Encoding)
-            this.SetOnExitHandler(1)
             return 1
         }
     }
@@ -183,34 +193,43 @@ class TracerLogFile {
     }
     Close(*) {
         if this.File {
-            if this.ToJson {
-                if this.File.Length > this.StartByte + 2 {
-                    this.File.Write(this.LineEnding ']')
-                }
-            }
             this.File.Close()
             this.File := ''
         }
-        this.SetOnExitHandler(0)
+        if IsObject(this.HandlerOnExit) {
+            this.SetOnExitHandler(0)
+        }
     }
     GetFiles(&OutGreatestIndex?) {
         OutGreatestIndex := 0
         if this.Ext {
-            filePattern := this.Dir '\' this.Name '*.' this.Ext
-            indexPattern := '-(\d+)\.' this.Ext '$'
+            filePattern := this.FilePattern || this.Dir '\' this.Name '*.' this.Ext
+            indexPattern := this.FileIndexPattern || '-(?<index>\d+)\.' this.Ext '$'
         } else {
-            filePattern := this.Dir '\' this.Name '*'
-            indexPattern := '-(\d+)$'
+            filePattern := this.FilePattern || this.Dir '\' this.Name '*'
+            indexPattern := this.FileIndexPattern || '-(?<index>\d+)$'
         }
         result := []
-        loop Files filePattern, 'F' {
-            result.Push({ TimeCreated: A_LoopFileTimeCreated, FullPath: A_LoopFileFullPath, Size: A_LoopFileSize })
-            if RegExMatch(A_LoopFileName, indexPattern, &Match) {
-                if Match[1] > OutGreatestIndex {
-                    OutGreatestIndex := Match[1]
+        if indexPattern = -1 {
+            loop Files filePattern, 'F' {
+                result.Push({ TimeCreated: A_LoopFileTimeCreated, FullPath: A_LoopFileFullPath, Size: A_LoopFileSize })
+            }
+        } else {
+            loop Files filePattern, 'F' {
+                result.Push({ TimeCreated: A_LoopFileTimeCreated, FullPath: A_LoopFileFullPath, Size: A_LoopFileSize })
+                if RegExMatch(A_LoopFileName, indexPattern, &Match) {
+                    if Match['index'] > OutGreatestIndex {
+                        OutGreatestIndex := Match['index']
+                    }
+                } else {
+                    ; If you get this error it means you overrode `TracerLogFileObj.GetPath`. You
+                    ; can either define `Options.LogFile.FileIndexPattern` with a pattern that
+                    ; correctly captures the indx, or disable this functionality altogether by
+                    ; setting `Options.LogFile.FileIndexPattern := -1`. Disabling this
+                    ; functionality causes `TracerLogFile.Prototype.Open` to always open a new
+                    ; file.
+                    throw Error('Unmatched file name', -1, A_LoopFileFullPath)
                 }
-            } else {
-                throw Error('Unmatched file name', -1, A_LoopFileFullPath)
             }
         }
         return result
@@ -229,46 +248,37 @@ class TracerLogFile {
         f := FileOpen(path, 'w', this.Encoding)
         result := f.Length
         f.Close()
+        FileDelete(path)
         return result
     }
-    /**
-     * Disclaimer: Calling this sets a property {@link TracerLogFile#flag__OnExitStarted} which
-     * forces {@link Tracer.Prototype.Log} to call {@link TracerLogFile.Prototype.Close} every
-     * time. This is necessary to ensure that the log file is closed correctly even when the log
-     * file is reopened after {@link TracerLogFile.Prototype.OnExit} executes. However, there
-     * is no code that switches this flag off. If there is a possibility {@link TracerLogFile.Prototype.OnExit}
-     * is called but then the script does not exit, you may want to include a line of code that
-     * sets {@link TracerLogFile#flag__OnExitStarted} to 0.
-     */
     OnExit(*) {
         if this.Options.LogFile.OnExitCritical {
             previousCritical := Critical(this.Options.LogFile.OnExitCritical)
         }
         this.Close()
-        this.flag__OnExitStarted := 1
         if this.Options.LogFile.OnExitCritical {
             Critical(previousCritical)
         }
     }
-    Open(SetOnExit := 1) {
+    Open(SetOnExit := true) {
         this.StartByte := this.GetStartByte()
-        if FileExist(this.Path) {
+        if FileExist(this.Path) && !this.flag_newFile && this.FileIndexPattern != -1 {
             if !this.MaxSize || FileGetSize(this.Path, 'B') < this.MaxSize {
                 if this.ToJson {
                     switch this.CheckJsonStart() {
                         case 0:
                             switch this.CheckJsonEnd() {
-                                case 0: this.RemoveCloseSquareBracket()
+                                case 0: this.StandardizeEnding()
                                 case 1: ; do nothing
-                                case 2: this.NewJsonFile := true
+                                case 2: this.flag_newJsonFile := true
                                 case 3:
-                                    this.NewJsonFile := true
+                                    this.flag_newJsonFile := true
                                     ++this.Index
                             }
-                        case 1: this.RemoveCloseSquareBracket()
-                        case 2: this.NewJsonFile := true
+                        case 1: this.StandardizeEnding()
+                        case 2: this.flag_newJsonFile := true
                         case 3:
-                            this.NewJsonFile := true
+                            this.flag_newJsonFile := true
                             ++this.Index
                     }
                 } else {
@@ -279,12 +289,13 @@ class TracerLogFile {
             } else {
                 ++this.Index
                 if this.ToJson {
-                    this.NewJsonFile := true
+                    this.flag_newJsonFile := true
                 }
             }
         } else if this.ToJson {
-            this.NewJsonFile := true
+            this.flag_newJsonFile := true
         }
+        this.flag_newFile := 0
         this.File := FileOpen(this.Path, 'a', this.Encoding)
         if SetOnExit {
             this.SetOnExitHandler(SetOnExit)
@@ -292,81 +303,73 @@ class TracerLogFile {
     }
     /**
      * Removes the closing square bracket from the file. This also deletes any trailing whitespace.
-     * If the file has already been opened, the file pointer is moved to the end of the file. If the
-     * file has not been already opened, it is opened temporarily and closed before this function
-     * exits.
+     * If the file has not been already opened, it is opened temporarily and closed before this
+     * function exits. If the file has already been opened, the file pointer is moved to the end
+     * of the file.
+     *
      * @returns {Integer} - 0 if successful, 1 if the file is empty or contains only whitespace.
      * @throws {Error} - "The file's contents does not end with a close square bracket."
      */
-    RemoveCloseSquareBracket() {
+    StandardizeEnding() {
         if this.File {
             f := this.File
-            pos := f.Pos
         } else {
             f := FileOpen(this.Path, 'a', this.Encoding)
         }
-        chunkSize := Min(this.BracketByteCount * 10, f.Length)
-        r := Mod(f.Length, chunkSize)
-        f.Pos := f.Length - chunkSize
-        loop Floor(f.Length / chunkSize) {
-            if str := RTrim(f.Read(), '`s`r`t`n') {
-                return _Check()
-            } else {
-                f.Length -= chunkSize
-                if f.Length >= chunkSize {
-                    f.Pos := f.Length - chunkSize
-                } else {
-                    f.Pos := 0
-                }
-            }
-        }
-        if r {
-            f.Pos := 0
-            if str := RTrim(f.Read(), '`s`r`t`n') {
-                return _Check()
-            } else {
-                f.Length := 0
-                if !IsSet(pos) {
-                    f.Close()
-                }
-            }
+        chunkSize := this.BracketByteCount * 10
+        len := f.Length - this.StartByte
+        if chunkSize > len {
+            return _Check()
         } else {
-            f.Length := 0
-            if !IsSet(pos) {
-                f.Close()
+            loop Floor(len / chunkSize) {
+                f.Pos -= chunkSize * A_Index
+                if !_Check() {
+                    return 0
+                }
             }
+            if r := Mod(len, chunkSize) {
+                f.Pos := this.StartByte
+                return _Check()
+            }
+            return 1
         }
-
-        return 1
 
         _Check() {
-            if SubStr(str, -1, 1) == ']' {
-                f.Length -= this.BracketByteCount
-                if IsSet(pos) {
-                    f.Pos := f.Length
+            str := f.Read()
+            ; If it's not all whitespace
+            if RegExMatch(str, '\S') {
+                ; If the file ends with a square bracket with 0 indentation
+                if RegExMatch(str, this.LineEnding '\]' this.LineEnding '(\s*)$', &match) {
+                    ; Leave only one line break after the close bracket.
+                    f.Length := f.Length - StrPut(match[1], this.Encoding) + StrPut('', this.Encoding)
+                    if !this.File {
+                        f.Close()
+                    }
+                    return 0
                 } else {
-                    f.Close()
+                    throw Error('The file`'s contents does not end with a close square bracket.', -1)
                 }
-                return 0
-            } else {
-                if IsSet(pos) {
-                    f.Pos := f.Length
-                } else {
-                    f.Close()
-                }
-                throw Error('The file`'s contents does not end with a close square bracket.', -1, this.Path)
             }
+            return 1
         }
     }
     SetToJson(Value) {
         this.Options.Log.ToJson := Value
         if !Value {
-            this.NewJsonFile := false
+            this.flag_newJsonFile := false
         }
     }
     SetEncoding(Encoding) {
         this.Options.LogFile.Encoding := Encoding
-        this.BracketByteCount := StrPut('[', Encoding)
+        ; This information is used to move the file pointer when adding new items to the json array
+        ; when `Options.Log.ToJson` is true. When `Tracer.Prototype.Log` is called, and if
+        ; `TracerLogFileObj.flag_newJsonFile` is false, `Tracer.Prototype.Log` moves the file pointer
+        ; to overwrite the closing square bracket and line end characters, adds a comma, adds the
+        ; new log item, then closes the json array again. The number of bytes varies depending
+        ; on encoding.
+        this.BracketByteCount := StrPut('[', Encoding) - StrPut('', Encoding)
+        this.LineEndByteCount := StrPut(this.LineEnding, Encoding) - StrPut('', Encoding)
+        this.EndByteCount := this.BracketByteCount + this.LineEndByteCount * 2
         this.StartByte := this.GetStartByte()
     }
     SetExt(Ext) {
@@ -413,6 +416,8 @@ class TracerLogFile {
     Dir => this.Options.LogFile.Dir
     Encoding => this.Options.LogFile.Encoding
     Ext => this.Options.LogFile.Ext
+    FileIndexPattern => this.Options.LogFile.FileIndexPattern
+    FilePattern => this.Options.LogFile.FilePattern
     LineEnding => this.Options.Tracer.LineEnding
     MaxFiles => this.Options.LogFile.MaxFiles
     MaxSize => this.Options.LogFile.MaxSize

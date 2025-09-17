@@ -217,9 +217,74 @@ second parameter to have its properties and items serialized and included in the
 You can fine-tune what gets included in the snapshot with `StringifyAll`'s many options. See
 [the documentation](https://github.com/Nich-Cebolla/StringifyAll) for details.
 
+# Customizing the file path
+
+`Tracer` constructs the file path as:
+
+```
+if Options.LogFile.Ext {
+    path := Options.LogFile.Dir "\" Options.LogFile.Name "-" TracerLogFileObj.Index "." Options.LogFile.Ext
+} else {
+    path := Options.LogFile.Dir "\" Options.LogFile.Name "-" TracerLogFileObj.Index
+}
+```
+
+Whenever the file path is needed, the function calls `TracerLogFileObj.GetPath`, which is an own property
+on the `TracerLogFile` object. You can overwrite this method directly with your own custom logic.
+
+If you want it to apply to all instances of `TracerLogFile`, you must overwrite `TracerLogFile.Prototype.__GetPath`
+and `TracerLogFile.Prototype.__GetPathNoExt`.
+
+If you change `TracerLogFileObj.GetPath`, you will likely need to set `Options.LogFile.FileIndexPattern`
+and `Options.LogFile.FilePattern`.
+
+`Options.LogFile.FilePattern` is used to count the files in the directory to determine if files need
+to be deleted.
+
+If `Options.LogFile.FileIndexPattern` does not correctly capture the index in the file name,
+`TracerLogFile.Prototype.GetFiles` will throw an error. `TracerLogFile.Prototype.GetFiles` is called
+from `TracerLogFile.Prototype.__New`, so it is an effective requirement that
+`Options.LogFile.FileIndexPattern` matches, or you can disable the functionality by setting
+`Options.LogFile.FileIndexPattern := -1`. Disabling this functionality causes
+`TracerLogFile.Prototype.Open` to always open a new file.
+
+# Opening the log file
+
+Depending on the value of parameter `FileAction`, the process of opening the log file is intended
+to allow the use of one log file across multiple sessions by validating the most recent file and
+reopening it if appropriate. The "most recent file" is considered to be the file with the greatest
+index in the file name, as evaluated within `TracerLogFile.Prototype.GetFiles` using
+`Options.LogFile.FileIndexPattern`. See above section "Customizing the file path".
+
+If all of the following are true, then the most recent file is opened and used:
+- If the file begins and ends with open and close square brackets
+- If the value of `Options.Log.ToJson` is true
+- If the size of the file is less than `Options.LogFile.MaxSizeand
+
+Or, if all of the following are true, then the most recent file is opened and used:
+- If the file does not begin with or end with open and close square brackets
+- If the value of `Options.Log.ToJson` is false
+- If the size of the file is less than `Options.LogFile.MaxSize
+
 # Changelog
 
 **2025-09-16**: v1.0.1
 - Added `Options.Log.Critical`.
 - Added `Options.LogFile.Critical`.
+- Added `Options.LogFile.FileIndexPattern`.
+- Added `Options.LogFile.FilePattern`.
 - Added `Options.Out.Critical`.
+- Added `TracerLogFile.Prototype.StandardizeEnding`.
+- Added parameter `FileAction` to `TracerGroup.Prototype.__New`, `Tracer.Prototype.__New`, `TracerTools.Prototype.__New`.
+- Added parameter `NewFile` to `TracerLogFile.Prototype.__New`.
+- Changed `TracerUnit.Prototype.Log` - it now adds an extra line break to the end of the file.
+- Changed `TracerLogFile.Prototype.SetEncoding` - it now creates two additional own properties:
+  - `TracerLogFileObj.LineEndByteCount` - the number of bytes of `Options.Tracer.LineEnding`.
+  - `TracerLogFileObj.EndByteCount` - the sum of `TracerLogFileObj.BracketByteCount + TracerLogFileObj.LineEndByteCount * 2`.
+- Changed how logging to json is handled. Now, the json array is always closed when `Tracer.Prototype.Log`
+writes to the file. With each new addition to the array, the file pointer is moved back to overwrite
+the close brace and line end characters.
+- Changed `TracerLogFileObj.NewLogFile` to `TracerLogFileObj.flag_newLogFile`.
+- Removed `TracerLogFileObj.flag__onExitStarted`. The logic which it supported is no longer used.
+- Fixed `TracerLogFile.Prototype.SetEncoding` - previously, the value set to property
+`TracerLogFileObj.BracketByteCount` was incorrect; this has been fixed.

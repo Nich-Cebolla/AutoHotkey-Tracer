@@ -213,6 +213,7 @@ class test {
                     "What": "{7}"
                 }
             ]
+
         )'
         , Tracer_FormatStr_EscapeJson(A_ScriptFullPath)
         , line
@@ -254,6 +255,7 @@ class test {
                     "What": "{7}"
                 }
             ]
+
         )'
         , Tracer_FormatStr_EscapeJson(A_ScriptFullPath)
         , line
@@ -311,8 +313,6 @@ class test {
         t.SetOption('LogFile', 'MaxFiles', 2)
         t.Log('test7')
         _CheckFiles(t, 2)
-
-        sleep 1
 
         _CheckFiles(t, n) {
             files := t.Tools.LogFile.GetFiles()

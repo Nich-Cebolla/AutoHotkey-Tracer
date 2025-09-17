@@ -94,6 +94,8 @@ class TracerOptions extends TracerOptionsBase {
         this.DefaultLogFile := {
             Dir: ''
           , Encoding: 'utf-8'
+          , FileIndexPattern: ''
+          , FilePattern: ''
           , Ext: ''
           , MaxFiles: 0
           , MaxSize: 0
@@ -272,6 +274,24 @@ class TracerOptions extends TracerOptionsBase {
      *
      * @param {String} [Options.LogFile.Ext = ""] - The log file's file extension. If an empty
      * string, no extension is used.
+     *
+     * @param {String} [Options.LogFile.FileIndexPattern = ""] - {@link TracerLogFile} manages
+     * an own property {@link TracerLogFile#Index} which it uses when constructing the file path.
+     * The index is incremented each time a new file is opened. When {@link TracerLogFile.Prototype.__New}
+     * constructs a new instance, it iterates the files in `Options.LogFile.Dir` and while doing so it
+     * identifies the greatest index within the directory, then sets `TracerLogFileObj.Index := greatestIndex`.
+     * If `Options.LogFile.FileIndexPattern` is unset, the default pattern is used.
+     *
+     * You should only change this if you overwrite `TracerLogFileObj.GetPath`. The
+     * pattern must have a subcapture group "index" that returns the index.
+     *
+     * Set to "-1" to disable the functionality.
+     *
+     * @param {String} [Options.LogFile.FilePattern = ""] - The file patern is used when checking
+     * `Options.LogFile.Dir` to count the number of files present in the directory. If unset,
+     * the default pattern is used.
+     *
+     * You should only change this if you overwrite the file path logic with custom logic.
      *
      * @param {Integer} [Options.LogFile.MaxFiles = 0] - If an integer greater than zero, the
      * maximum number of files permitted to exist conccurently in `Options.LogFile.Dir`. When
