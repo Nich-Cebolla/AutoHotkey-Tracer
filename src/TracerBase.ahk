@@ -45,9 +45,6 @@ class TracerBase {
         }
     }
     /**
-     * When called from an instance of {@link TracerGroup}, sets an option at the group level.
-     * When called from an instance of {@link Tracer}, sets an option at the individual level.
-     *
      * For a list and description of the options, see {@link TracerOptions}.
      *
      * @param {String} OptionCategory - One of the following:
@@ -71,9 +68,6 @@ class TracerBase {
         }
     }
     /**
-     * When called from an instance of {@link TracerGroup}, sets options at the group level.
-     * When called from an instance of {@link Tracer}, sets options at the individual level.
-     *
      * Updates options from an input object. This only changes option values that are included
      * as properties on the input object; all other option values will remain their current
      * value.

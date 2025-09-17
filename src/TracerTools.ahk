@@ -33,28 +33,6 @@ class TracerTools extends TracerToolsBase {
     }
 }
 
-class TracerToolsInheritor extends TracerToolsBase {
-    __New(TracerToolsObj, Options) {
-        ObjSetBase(this, TracerToolsObj)
-        this.Options := Options
-        ObjSetBase(this.Options, TracerToolsObj.Options)
-        if IsObject(this.LogFile) {
-            this.LogFile := { Options: Options }
-            ObjSetBase(this.LogFile, TracerToolsObj.LogFile)
-        }
-        for toolName in [ 'FormatStrConstructor', 'FormatStrLog', 'FormatStrOut', 'Indent' ] {
-            if IsObject(TracerToolsObj.%toolName%) {
-                if tracerToolsObj.%toolName% is Array {
-                    this.%toolName% := []
-                } else {
-                    this.%toolName% := { }
-                }
-                ObjSetBase(this.%toolName%, tracerToolsObj.%toolName%)
-            }
-        }
-    }
-}
-
 class TracerToolsBase {
     static __New() {
         this.DeleteProp('__New')

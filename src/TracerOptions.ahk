@@ -12,48 +12,8 @@
  *
  * {@link TracerOptions} copies the property values from your input; {@link TracerOptions} neither
  * changes your input object nor caches a reference to it.
- *
- * When you pass the options object to {@link TracerGroup}, the {@link TracerGroup} object
- * maintains a reference to the original instance of {@link TracerOptions}. When you call a function
- * to change an option at the group level, the value of the relevant property is changed on the
- * original object.
- *
- * When you call {@link TracerGroup.Prototype.Call} to get an instance of {@link Tracer}, the
- * {@link Tracer} object gets a reference to an object which inherits from the original {@link TracerGroup}.
- * When you call a method to update an option from the {@link Tracer} object, the value is updated
- * on the object which inherits from the original, not on the original itself. This creates the
- * needed separation to facilitate the use of both group-level options and individual-level options.
- *
- * The root options object is a container for a number of other options objects. The inheritance
- * logic accounts for this by replicating the structure of the root object where each property is set
- * with a plain object that inherits from the associated child object from the original.
- *
- * The following is a simplification of the process for illustration purposes.
- *
- * @example
- *  originalOptions := {
- *      TracerGroup: {
- *          HistoryActive: false
- *      }
- *    , LogFile: {
- *          MaxFiles: 10
- *        , Dir: 'tracer'
- *      }
- *  }
- *
- *  inheritor := {
- *      TracerGroup: {}
- *    , LogFile: {}
- *  }
- *
- *  ObjSetBase(inheritor.TracerGroup, originalOptions.TracerGroup)
- *  ObjSetBase(inheritor.LogFile, originalOptions.LogFile)
- * @
- *
- * The root object does not actually inherit from the original; the child objects inherit from the
- * original's child objects.
  */
-class TracerOptions extends TracerOptionsBase {
+class TracerOptions {
     static __New() {
         this.DeleteProp('__New')
         this.DefaultFormatSpecifierNames := [ 'ext', 'extra', 'id', 'file', 'filename', 'filenamenoext', 'le', 'line', 'message', 'nicetime', 'snapshot', 'stack', 'time', 'what' ]
@@ -142,6 +102,9 @@ class TracerOptions extends TracerOptionsBase {
           , Tracer: this.DefaultTracer
           , TracerGroup: this.DefaultTracerGroup
         }
+        proto := this.Prototype
+        proto.FormatStr := proto.Log := proto.LogFile := proto.Out := proto.StringifyAll :=
+        proto.Tracer := proto.TracerGroup := ''
     }
     /**
      * Returns a {@link TracerOptions} object which is shared across this library's classes. You
@@ -181,8 +144,7 @@ class TracerOptions extends TracerOptionsBase {
      *
      * If your code will not be using {@link Tracer} to write to log file, do not include
      * `Options.LogFile`. This will disable {@link Tracer.Prototype.Log} until you call either
-     * {@link TracerGroup#Tools.GetLogFile} or {@link Tracer#Tools.GetLogFile} depending if
-     * you want it opened at the group level or individual level.
+     * {@link TracerGroup#Tools.GetLogFile} or {@link Tracer#Tools.GetLogFile}.
      *
      * If your code will be using {@link Tracer.Prototype.Log}, you must minimally include
      * `Options.LogFile.Dir` and `Options.LogFile.Name`, or call {@link TracerOptions.Pototype.SetLogFile}
@@ -447,54 +409,14 @@ class TracerOptions extends TracerOptionsBase {
         }
     }
     /**
-     * Returns an object with properties { FormatStr, Log, LogFile, Out, StringifyAll, Tracer, TracerGroup }.
-     * Each property is set with an object with 0 own properties, and those blank objects have their base
-     * set to associated options object from this {@link TracerGroup} instance.
+     * Returns a deep clone of this object.
      *
-     * For those still learning about AutoHotkey's object model, this means that all of the properties
-     * from this {@link TracerGroup} instance and its nested objects are also accessible from the
-     * returned object. Additionally, those poperties can be overridden without affecting this
-     * original object. This is how {@link TracerGroup} and {@link Tracer} facilitates the ability
-     * to set options at the group- and individual-level.
-     *
-     * @example
-     *  MyOptions := TracerOptions({ Tracer: { HistoryActive: true } })
-     *  OutputDebug(MyOptions.Tracer.HistoryActive "`n") ; 1
-     *  inheritor := MyOptions.GetInheritor()
-     *  OutputDebug(inheritor.Tracer.HistoryActive "`n") ; 1
-     *  inheritor.SetTracer("HistoryActive", false)
-     *  OutputDebug(inheritor.Tracer.HistoryActive "`n") ; 0
-     *  ; The original is unaffected
-     *  OutputDebug(MyOptions.Tracer.HistoryActive "`n") ; 1
-     *  inheritor.Tracer.DeleteProp("HistoryActive")
-     *  ; Even though we deleted the property, only the own property
-     *  ; was deleted, so the base object's property is still
-     *  ; there, unchanged.
-     *  OutputDebug(inheritor.Tracer.HistoryActive "`n") ; 1
-     * @
-     *
-     * Keep in mind that if an option is an object, and if you change a property value for
-     * that option on the inheritor, that change IS reflected on the original. Currently, only
-     * `Options.StringifyAll` has any properties that are objects.
-     *
-     * @example
-     *  MyOptions := TracerOptions({ StringifyAll: { PropsTypeMap: Tracer_MapHelper(false, 1) } })
-     *  OutputDebug(MyOptions.StringifyAll.PropsTypeMap.Count "`n") ; 0
-     *  inheritor := MyOptions.GetInheritor()
-     *  OutputDebug(inheritor.StringifyAll.PropsTypeMap.Count "`n") ; 0
-     *  inheritor.StringifyAll.PropsTypeMap.Set("Array", 0)
-     *  ; Now the count is 1
-     *  OutputDebug(inheritor.StringifyAll.PropsTypeMap.Count "`n") ; 1
-     *  ; The original is also effected, because `inheritor.StringifyAll` inherits the
-     *  ; property values from `MyOptions.StringifyAll`, so when I access
-     *  ; properties from either object, I'm accessing the same value.
-     *  OutputDebug(MyOptions.StringifyAll.PropsTypeMap.Count "`n") ; 1
-     * @
-     *
-     * @returns {TracerOptionsInheritor}
+     * Note that if a property has a value that is a `Func` object, the value on the clone will
+     * be a {@link Tracer_Functor} object, which will behave the same way but allows your code
+     * to set new property values without changing the original.
      */
-    GetInheritor() {
-        return TracerOptionsInheritor(this)
+    Clone() {
+        return Tracer_ObjDeepClone(this)
     }
     /**
      * Overwrites the options object for the indicated category with a deep clone of the default.
@@ -510,56 +432,6 @@ class TracerOptions extends TracerOptionsBase {
      */
     ResetCategory(OptCategory) {
         this.%OptCategory% := Tracer_ObjDeepClone(TracerOptions.DefaultOptions.%OptCategory%)
-    }
-}
-
-class TracerOptionsInheritor extends TracerOptionsBase {
-    __New(TracerOptionsObj) {
-        for optCategory in TracerOptions.DefaultOptions.OwnProps() {
-            ObjSetBase(this.%optCategory% := {}, TracerOptionsObj.%optCategory%)
-        }
-    }
-    /**
-     * Deletes all own properties for the options object for the indicated category.
-     *
-     * @param {String} OptCategory - The options category name:
-     * - FormatStr
-     * - Log
-     * - LogFile
-     * - Out
-     * - StringifyAll
-     * - Tracer
-     * - TracerGroup
-     */
-    ResetCategory(OptCategory) {
-        obj := this.%OptCategory%
-        list := []
-        list.Capacity := ObjOwnPropCount(obj)
-        for name in obj.OwnProps() {
-            list.Push(name)
-        }
-        for name in list {
-            obj.DeleteProp(name)
-        }
-    }
-}
-
-class TracerOptionsBase {
-    static __New() {
-        this.DeleteProp('__New')
-        proto := this.Prototype
-        proto.FormatStr := proto.Log := proto.LogFile := proto.Out := proto.StringifyAll :=
-        proto.Tracer := proto.TracerGroup := ''
-    }
-    /**
-     * Returns a deep clone of this object.
-     *
-     * Note that if a property has a value that is a `Func` object, the value on the clone will
-     * be a {@link Tracer_Functor} object, which will behave the same way but allows your code
-     * to set new property values without changing the original.
-     */
-    Clone() {
-        return Tracer_ObjDeepClone(this)
     }
     ResetAll() {
         for optCategory in TracerOptions.DefaultOptions.OwnProps() {

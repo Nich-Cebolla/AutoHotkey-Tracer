@@ -154,5 +154,6 @@ class Tracer extends TracerBase {
         Set => this.Options.Tracer.IdCallback := Value
     }
     GroupName => this.Options.TracerGroup.GroupName
+    OwnOptions => this.Options.Tracer
     PathLog => this.Tools.LogFile.Path
 }

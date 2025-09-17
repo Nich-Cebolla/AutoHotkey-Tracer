@@ -94,7 +94,7 @@ class test {
         f := lf.File
         f.Pos := lf.StartByte
         str := f.Read()
-        f.Close()
+        lf.Close()
         expected := Format('
         (
             Log id: 1:1
@@ -108,23 +108,6 @@ class test {
         if str != expected {
             CustomErrorWindow(Error('Incorrect string.', -1), 'Expected:`r`n' expected, 'Result:`r`n' str)
         }
-
-        ; Get another tracer object
-        t := group()
-        result.tracers.Push(t)
-
-        ; This should fail still because we created a log file at the individual level
-        flag := false
-        try {
-            t.Log()
-            flag := true
-        }
-        if flag {
-            throw Error('Error expected.', -1)
-        }
-
-        ; Create `TracerLogFile` at group level
-        group.Tools.GetLogFile(this.dir, this.filename)
 
         ; Get another tracer object
         t := group()
@@ -144,7 +127,7 @@ class test {
 
         expected .= Format('
         (
-            Log id: 3:1
+            Log id: 2:1
             Timestamp: {1}
             Time: {2}
             File: {3} : {4}

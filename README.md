@@ -287,5 +287,10 @@ writes to the file. With each new addition to the array, the file pointer is mov
 the close brace and line end characters.
 - Changed `TracerLogFileObj.NewLogFile` to `TracerLogFileObj.flag_newLogFile`.
 - Removed `TracerLogFileObj.flag__onExitStarted`. The logic which it supported is no longer used.
+- Removed `TracerOptionsInheritor`.
+- Removed `TracerOptionsBase`.
+- Removed `TracerOptions.Prototype.GetInheritor`.
 - Fixed `TracerLogFile.Prototype.SetEncoding` - previously, the value set to property
 `TracerLogFileObj.BracketByteCount` was incorrect; this has been fixed.
+- Fixed `Tracer.Prototype.OwnOptions` and `TracerGroup.Prototype.OwnOptions` (they were supposed
+to exist but did not. Now they exist).
