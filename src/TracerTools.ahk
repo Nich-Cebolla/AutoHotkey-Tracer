@@ -62,6 +62,9 @@ class TracerToolsBase {
         proto.LogFile := proto.FormatStrConstructor := proto.FormatStrOut := proto.FormatStrLog :=
         proto.Indent := proto.flag_fileAction := ''
     }
+    Close() {
+        this.LogFile.Close()
+    }
     GetFormatStrConstructor() {
         this.FormatStrConstructor := FormatStrConstructor(this.Options.FormatStr.FormatSpecifierNames, this.Options.FormatStr)
         if this.Options.HasValidLogFileOptions {
@@ -102,6 +105,15 @@ class TracerToolsBase {
         this.LogFile := TracerLogFile(this.Options, this.flag_fileAction = 2 || this.flag_fileAction = 4)
         this.flag_fileAction := 0
         this.GetFormatStrLog()
+    }
+    Open(NewFile := false) {
+        if IsObject(this.LogFile) {
+            if IsObject(this.LogFile.File) {
+                this.LogFile.Close()
+            }
+        } else {
+            this.LogFile := TracerLogFile(this.Options, NewFile)
+        }
     }
     SetIndentLen(IndentLen) {
         this.Options.Tracer.IndentLen := IndentLen

@@ -77,6 +77,9 @@ class Tracer extends TracerBase {
         }
         ObjSetBase(this.Prototype, TracerUnit.Prototype)
     }
+    Close() {
+        this.Tools.Close()
+    }
     Log(Message := '', SnapshotObj?, Extra := '', What?) {
         if !this.Tools.LogFileOpen {
             this.Tools.GetLogFile()
@@ -108,6 +111,9 @@ class Tracer extends TracerBase {
             Critical(previousCritical)
         }
         return unit
+    }
+    Open(NewFile := false) {
+        this.Tools.Open(NewFile)
     }
     Out(Message := '', SnapshotObj?, Extra := '', What?) {
         if this.Options.Out.Critical {

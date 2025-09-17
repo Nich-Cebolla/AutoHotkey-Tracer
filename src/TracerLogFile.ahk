@@ -58,6 +58,9 @@ class TracerLogFile {
             this.File.Close()
             this.CheckDir(, 1)
             ++this.Index
+            if this.ToJson {
+                this.flag_newJsonFile := true
+            }
             this.File := FileOpen(this.Path, 'a', this.Encoding)
             return 1
         }

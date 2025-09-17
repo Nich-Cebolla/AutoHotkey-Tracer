@@ -274,6 +274,7 @@ Or, if all of the following are true, then the most recent file is opened and us
 - Added `Options.LogFile.FileIndexPattern`.
 - Added `Options.LogFile.FilePattern`.
 - Added `Options.Out.Critical`.
+- Added `Tracer.Prototype.Open`, `Tracer.Prototype.Close`, `TracerTools.Prototype.Open`, and `TracerTools.Prototype.Close`.
 - Added `TracerLogFile.Prototype.StandardizeEnding`.
 - Added parameter `FileAction` to `TracerGroup.Prototype.__New`, `Tracer.Prototype.__New`, `TracerTools.Prototype.__New`.
 - Added parameter `NewFile` to `TracerLogFile.Prototype.__New`.
