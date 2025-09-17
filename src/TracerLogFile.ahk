@@ -254,6 +254,15 @@ class TracerLogFile {
         FileDelete(path)
         return result
     }
+    /**
+     * Disclaimer: Calling this sets a property {@link Tracer_Flag_OnExitStarted} which
+     * forces {@link Tracer.Prototype.Log} to close the log file every time. This is necessary to
+     * ensure that the log file is closed correctly even when the log file is reopened after
+     * {@link TracerLogFile.Prototype.OnExit} executes. However, there is no code that switches this
+     * flag off. If there is a possibility {@link TracerLogFile.Prototype.OnExit} is called but then
+     * the script does not exit, you may want to include a line of code that sets
+     * {@link Tracer_Flag_OnExitStarted} to 0.
+     */
     OnExit(*) {
         if this.Options.LogFile.OnExitCritical {
             previousCritical := Critical(this.Options.LogFile.OnExitCritical)
@@ -262,6 +271,7 @@ class TracerLogFile {
         if this.Options.LogFile.OnExitCritical {
             Critical(previousCritical)
         }
+        Tracer_Flag_OnExitStarted := 1
     }
     Open(SetOnExit := true) {
         this.StartByte := this.GetStartByte()

@@ -278,6 +278,7 @@ Or, if all of the following are true, then the most recent file is opened and us
 - Added `TracerLogFile.Prototype.StandardizeEnding`.
 - Added parameter `FileAction` to `TracerGroup.Prototype.__New`, `Tracer.Prototype.__New`, `TracerTools.Prototype.__New`.
 - Added parameter `NewFile` to `TracerLogFile.Prototype.__New`.
+- Added global variable `Tracer_Flag_OnExitStarted`.
 - Changed `TracerUnit.Prototype.Log` - it now adds an extra line break to the end of the file.
 - Changed `TracerLogFile.Prototype.SetEncoding` - it now creates two additional own properties:
   - `TracerLogFileObj.LineEndByteCount` - the number of bytes of `Options.Tracer.LineEnding`.
@@ -286,10 +287,11 @@ Or, if all of the following are true, then the most recent file is opened and us
 writes to the file. With each new addition to the array, the file pointer is moved back to overwrite
 the close brace and line end characters.
 - Changed `TracerLogFileObj.NewLogFile` to `TracerLogFileObj.flag_newLogFile`.
-- Removed `TracerLogFileObj.flag__onExitStarted`. The logic which it supported is no longer used.
 - Removed `TracerOptionsInheritor`.
 - Removed `TracerOptionsBase`.
 - Removed `TracerOptions.Prototype.GetInheritor`.
+- Removed `TracerToolsBase`.
+- Removed `TracerToolsInheritor`.
 - Fixed `TracerLogFile.Prototype.SetEncoding` - previously, the value set to property
 `TracerLogFileObj.BracketByteCount` was incorrect; this has been fixed.
 - Fixed `Tracer.Prototype.OwnOptions` and `TracerGroup.Prototype.OwnOptions` (they were supposed

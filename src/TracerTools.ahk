@@ -1,5 +1,11 @@
 ﻿
-class TracerTools extends TracerToolsBase {
+class TracerTools {
+    static __New() {
+        this.DeleteProp('__New')
+        proto := this.Prototype
+        proto.LogFile := proto.FormatStrConstructor := proto.FormatStrOut := proto.FormatStrLog :=
+        proto.Indent := proto.flag_fileAction := ''
+    }
     /**
      * @param {TracerOptions} Options - The {@link TracerOptions} object.
      *
@@ -30,15 +36,6 @@ class TracerTools extends TracerToolsBase {
         this.SetIndentLen(Options.Tracer.IndentLen)
         this.SetJsonPropertiesLog()
         this.SetJsonPropertiesOut()
-    }
-}
-
-class TracerToolsBase {
-    static __New() {
-        this.DeleteProp('__New')
-        proto := this.Prototype
-        proto.LogFile := proto.FormatStrConstructor := proto.FormatStrOut := proto.FormatStrLog :=
-        proto.Indent := proto.flag_fileAction := ''
     }
     Close() {
         this.LogFile.Close()
@@ -76,9 +73,6 @@ class TracerToolsBase {
         }
         if !this.Options.HasValidLogFileOptions {
             Tracer_ThrowInvalidLogFileOptions()
-        }
-        if IsObject(this.LogFile) && IsObject(this.LogFile.File) {
-            this.LogFile.Close()
         }
         this.LogFile := TracerLogFile(this.Options, this.flag_fileAction = 2 || this.flag_fileAction = 4)
         this.flag_fileAction := 0

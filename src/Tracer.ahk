@@ -26,6 +26,7 @@ class Tracer extends TracerBase {
         proto := this.Prototype
         proto.Options := proto.Id := proto.Tools := proto.History :=
         proto.Index := ''
+        global Tracer_Flag_OnExitStarted := 0
     }
     /**
      * @param {String} Id - A unique identifier.
@@ -81,13 +82,17 @@ class Tracer extends TracerBase {
         this.Tools.Close()
     }
     Log(Message := '', SnapshotObj?, Extra := '', What?) {
-        if !this.Tools.LogFileOpen {
-            this.Tools.GetLogFile()
-        }
         if IsObject(this.Options.Log.ConditionCallback) {
             if !this.Options.Log.ConditionCallback.Call(this) {
                 return 0
             }
+        }
+        if Tracer_Flag_OnExitStarted {
+            this.__Log_OnExitStarted(Message, SnapshotObj ?? unset, Extra := '', What?)
+            return
+        }
+        if !this.Tools.LogFileOpen {
+            this.Tools.GetLogFile()
         }
         if this.Options.Log.Critical {
             previousCritical := Critical(this.Options.Log.Critical)
@@ -116,13 +121,13 @@ class Tracer extends TracerBase {
         this.Tools.Open(NewFile)
     }
     Out(Message := '', SnapshotObj?, Extra := '', What?) {
-        if this.Options.Out.Critical {
-            previousCritical := Critical(this.Options.Log.Critical)
-        }
         if IsObject(this.Options.Out.ConditionCallback) {
             if !this.Options.Out.ConditionCallback.Call(this) {
                 return 0
             }
+        }
+        if this.Options.Out.Critical {
+            previousCritical := Critical(this.Options.Log.Critical)
         }
         unit := Error(Message, What ?? this.DefaultWhat, Extra)
         unit.Time := A_Now
@@ -140,6 +145,33 @@ class Tracer extends TracerBase {
             this.HistoryAdd(unit)
         }
         if this.Options.Out.Critical {
+            Critical(previousCritical)
+        }
+        return unit
+    }
+    __Log_OnExitStarted(Message := '', SnapshotObj?, Extra := '', What?) {
+        if this.Options.Log.Critical {
+            previousCritical := Critical(this.Options.Log.Critical)
+        }
+        lf := this.Tools.LogFile
+        lf.File := FileOpen(lf.Path, 'a', lf.Encoding)
+        unit := Error(Message, What ?? this.DefaultWhat, Extra)
+        unit.Time := A_Now
+        ObjSetBase(unit, this.Prototype)
+        if IsSet(SnapshotObj) {
+            if this.Options.Log.ToJson {
+                unit.GetSnapshot(SnapshotObj, 2)
+            } else {
+                unit.GetSnapshot(SnapshotObj, 0)
+            }
+        }
+        unit.UnitId := this.IdCallback.Call(this)
+        unit.Log()
+        lf.File.Close()
+        if this.HistoryActive {
+            this.HistoryAdd(unit)
+        }
+        if this.Options.Log.Critical {
             Critical(previousCritical)
         }
         return unit
