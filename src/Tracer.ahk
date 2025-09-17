@@ -87,15 +87,22 @@ class Tracer extends TracerBase {
                 return 0
             }
         }
-        if Tracer_Flag_OnExitStarted {
-            this.__Log_OnExitStarted(Message, SnapshotObj ?? unset, Extra := '', What?)
-            return
-        }
-        if !this.Tools.LogFileOpen {
-            this.Tools.GetLogFile()
-        }
         if this.Options.Log.Critical {
             previousCritical := Critical(this.Options.Log.Critical)
+        }
+        if IsObject(this.Tools.LogFile) {
+            if this.Tools.LogFile.flag_onExitStarted {
+                this.__Log_OnExitStarted(Message, SnapshotObj ?? unset, Extra := '', What?)
+                if this.Options.Log.Critical {
+                    Critical(previousCritical)
+                }
+                return
+            }
+            if !IsObject(this.Tools.LogFile.File) {
+                this.Tools.LogFile.Open()
+            }
+        } else {
+            this.Tools.GetLogFile()
         }
         unit := Error(Message, What ?? this.DefaultWhat, Extra)
         unit.Time := A_Now
@@ -150,9 +157,6 @@ class Tracer extends TracerBase {
         return unit
     }
     __Log_OnExitStarted(Message := '', SnapshotObj?, Extra := '', What?) {
-        if this.Options.Log.Critical {
-            previousCritical := Critical(this.Options.Log.Critical)
-        }
         lf := this.Tools.LogFile
         lf.File := FileOpen(lf.Path, 'a', lf.Encoding)
         unit := Error(Message, What ?? this.DefaultWhat, Extra)
@@ -170,9 +174,6 @@ class Tracer extends TracerBase {
         lf.File.Close()
         if this.HistoryActive {
             this.HistoryAdd(unit)
-        }
-        if this.Options.Log.Critical {
-            Critical(previousCritical)
         }
         return unit
     }

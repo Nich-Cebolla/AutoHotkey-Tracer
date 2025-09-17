@@ -104,7 +104,7 @@ class TracerOptions {
         }
         proto := this.Prototype
         proto.FormatStr := proto.Log := proto.LogFile := proto.Out := proto.StringifyAll :=
-        proto.Tracer := proto.TracerGroup := ''
+        proto.Tracer := proto.TracerGroup := proto.flag_onExitStarted := ''
     }
     /**
      * Returns a {@link TracerOptions} object which is shared across this library's classes. You

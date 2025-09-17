@@ -65,6 +65,9 @@ class TracerTools {
      * `Options.LogFile.Name`.
      */
     GetLogFile(Dir?, Name?) {
+        if IsObject(this.LogFile) {
+            throw Error('A ``TracerLogFile`` has already been created.', -1)
+        }
         if IsSet(Dir) {
             this.Options.LogFile.Dir := Dir
         }
@@ -81,10 +84,13 @@ class TracerTools {
     Open(NewFile := false) {
         if IsObject(this.LogFile) {
             if IsObject(this.LogFile.File) {
-                this.LogFile.Close()
+                throw Error('The file is already open.', -1)
+            } else {
+                this.LogFile.Open()
             }
+        } else {
+            this.LogFile := TracerLogFile(this.Options, NewFile)
         }
-        this.LogFile := TracerLogFile(this.Options, NewFile)
     }
     SetIndentLen(IndentLen) {
         this.Options.Tracer.IndentLen := IndentLen

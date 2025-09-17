@@ -18,11 +18,11 @@ class TracerBase {
      */
     HistoryActivate(MaxItems?) {
         this.OwnOptions.HistoryActive := true
-        if !this.IsObject(this.History) {
+        if !IsObject(this.History) {
             this.History := []
         }
         if IsSet(MaxItems) {
-            this.HistorySetMaxItems(MaxItems)
+            this.OwnOptions.HistoryMaxItems := MaxItems
         }
     }
     HistoryAdd(Value) {

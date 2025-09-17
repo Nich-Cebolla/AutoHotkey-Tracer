@@ -4,7 +4,8 @@ class TracerLogFile {
         this.DeleteProp('__New')
         proto := this.Prototype
         proto.flag_newJsonFile := proto.File := proto.HandlerOnExit := proto.Options := proto.flag_newFile := ''
-        proto.StartByte := proto.BracketByteCount := proto.LineEndByteCount := proto.EndByteCount := 0
+        proto.StartByte := proto.BracketByteCount := proto.LineEndByteCount := proto.EndByteCount :=
+        proto.flag_onExitStarted := 0
     }
     /**
      * @param {TracerOptions} Options - The options object. See {@link TracerOptions}.
@@ -39,7 +40,10 @@ class TracerLogFile {
             ++this.Index
         }
         this.flag_newFile := NewFile
-        this.Open(this.Options.LogFile.SetOnExit)
+        this.Open()
+        if this.Options.LogFile.SetOnExit {
+            this.SetOnExitHandler(1)
+        }
     }
     CheckDir(&OutGreatestIndex?, RemoveAdditionalFiles := 0) {
         result := this.GetFiles(&OutGreatestIndex)
@@ -255,15 +259,16 @@ class TracerLogFile {
         return result
     }
     /**
-     * Disclaimer: Calling this sets a property {@link Tracer_Flag_OnExitStarted} which
-     * forces {@link Tracer.Prototype.Log} to close the log file every time. This is necessary to
-     * ensure that the log file is closed correctly even when the log file is reopened after
-     * {@link TracerLogFile.Prototype.OnExit} executes. However, there is no code that switches this
-     * flag off. If there is a possibility {@link TracerLogFile.Prototype.OnExit} is called but then
-     * the script does not exit, you may want to include a line of code that sets
-     * {@link Tracer_Flag_OnExitStarted} to 0.
+     * Disclaimer: Calling this sets a property {@link TracerLogFile#flag_OnExitStarted} which
+     * forces {@link Tracer.Prototype.Log} to call {@link TracerLogFile.Prototype.Close} every
+     * time. This is necessary to ensure that the log file is closed correctly even when the log
+     * file is reopened after {@link TracerLogFile.Prototype.OnExit} executes. However, there
+     * is no code that switches this flag off. If there is a possibility {@link TracerLogFile.Prototype.OnExit}
+     * is called but then the script does not exit, you may want to include a line of code that
+     * sets {@link TracerLogFile#flag_OnExitStarted} to 0.
      */
     OnExit(*) {
+        this.flag_OnExitStarted := 1
         if this.Options.LogFile.OnExitCritical {
             previousCritical := Critical(this.Options.LogFile.OnExitCritical)
         }
@@ -271,9 +276,8 @@ class TracerLogFile {
         if this.Options.LogFile.OnExitCritical {
             Critical(previousCritical)
         }
-        Tracer_Flag_OnExitStarted := 1
     }
-    Open(SetOnExit := true) {
+    Open() {
         this.StartByte := this.GetStartByte()
         if FileExist(this.Path) && !this.flag_newFile && this.FileIndexPattern != -1 {
             if !this.MaxSize || FileGetSize(this.Path, 'B') < this.MaxSize {
@@ -310,9 +314,6 @@ class TracerLogFile {
         }
         this.flag_newFile := 0
         this.File := FileOpen(this.Path, 'a', this.Encoding)
-        if SetOnExit {
-            this.SetOnExitHandler(SetOnExit)
-        }
     }
     /**
      * Removes the closing square bracket from the file. This also deletes any trailing whitespace.
@@ -411,6 +412,7 @@ class TracerLogFile {
     __Delete() {
         if this.HasOwnProp('HandlerOnExit') && IsObject(this.HandlerOnExit) {
             ObjPtrAddRef(this)
+            OnExit(this.HandlerOnExit, 0)
             this.DeleteProp('HandlerOnExit')
         }
     }
