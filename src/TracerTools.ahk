@@ -83,9 +83,8 @@ class TracerTools {
             if IsObject(this.LogFile.File) {
                 this.LogFile.Close()
             }
-        } else {
-            this.LogFile := TracerLogFile(this.Options, NewFile)
         }
+        this.LogFile := TracerLogFile(this.Options, NewFile)
     }
     SetIndentLen(IndentLen) {
         this.Options.Tracer.IndentLen := IndentLen
