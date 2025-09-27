@@ -26,14 +26,15 @@ class Tracer extends TracerBase {
         proto := this.Prototype
         proto.Options := proto.Id := proto.Tools := proto.History :=
         proto.Index := ''
-        global Tracer_Flag_OnExitStarted := 0
     }
     /**
      * @param {String} Id - A unique identifier.
      *
-     * @param {TracerOptions|TracerOptionsInheritor} [Options] - The options object. See
-     * {@link TracerOptions} and {@link TracerOptionsInheritor} for details about the available
-     * options.
+     * @param {Object|TracerOptions} [Options] - The options object. See {@link TracerOptions} for
+     * details about the available options.
+     *
+     * If `Options` is not an instance of {@link TracerOptions}, it is passed to
+     * {@link TracerOptions.Prototype.__New} and the new instance is used as the options.
      *
      * @param {TracerTools} [Tools] - If set, the {@link TracerTools} object that this instance
      * of {@link Tracer} will use. If unset, a new {@link TracerTools} instance will be created
@@ -55,7 +56,14 @@ class Tracer extends TracerBase {
      */
     __New(Id, Options?, Tools?, FileAction := 1) {
         this.Id := Id
-        this.Options := Options ?? TracerOptions()
+        if IsSet(Options) {
+            if not Options is TracerOptions {
+                Options := TracerOptions(Options)
+            }
+            this.Options := Options
+        } else {
+            this.Options := TracerOptions()
+        }
         if this.HistoryActive {
             this.History := []
         }
@@ -81,7 +89,7 @@ class Tracer extends TracerBase {
     Close() {
         this.Tools.Close()
     }
-    Log(Message := '', SnapshotObj?, Extra := '', What?) {
+    Log(Message := '', SnapshotObj?, Extra := '', What?, IdValue?) {
         if IsObject(this.Options.Log.ConditionCallback) {
             if !this.Options.Log.ConditionCallback.Call(this) {
                 return 0
@@ -114,7 +122,7 @@ class Tracer extends TracerBase {
                 unit.GetSnapshot(SnapshotObj, 0)
             }
         }
-        unit.UnitId := this.IdCallback.Call(this)
+        unit.UnitId := this.IdCallback.Call(this, IdValue ?? unset)
         unit.Log()
         if this.HistoryActive {
             this.HistoryAdd(unit)
@@ -127,7 +135,7 @@ class Tracer extends TracerBase {
     Open(NewFile := false) {
         this.Tools.Open(NewFile)
     }
-    Out(Message := '', SnapshotObj?, Extra := '', What?) {
+    Out(Message := '', SnapshotObj?, Extra := '', What?, IdValue?) {
         if IsObject(this.Options.Out.ConditionCallback) {
             if !this.Options.Out.ConditionCallback.Call(this) {
                 return 0
@@ -146,7 +154,7 @@ class Tracer extends TracerBase {
                 unit.GetSnapshot(SnapshotObj, 0)
             }
         }
-        unit.UnitId := this.IdCallback.Call(this)
+        unit.UnitId := this.IdCallback.Call(this, IdValue ?? unset)
         unit.Out()
         if this.HistoryActive {
             this.HistoryAdd(unit)

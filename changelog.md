@@ -1,4 +1,13 @@
 
+**2025-09-27**: v1.0.2
+- Added parameter `IdValue` to `Tracer_GetId`, `TracerGroup.Prototype.Call`, `Tracer.Prototype.Log`, and `Tracer.Prototype.Out`.
+- Changed `Tracer_GetId` to handle the new parameter.
+- Changed how `TracerGroup.Prototype.__New` and `Tracer.Prototype.__New` handles the options. It is
+now no longer required to get an instance of `TracerOptions`. If `TracerGroup.Prototype.__New` or
+`Tracer.Prototype.__New` are called passing a regular object to `Options`, the object is passed
+to `TracerOptions.Prototype.__New`.
+- Removed global variable `Tracer_Flag_OnExitStarted` (it was no longer in use).
+
 **2025-09-16**: v1.0.1
 - Added `Options.Log.Critical`.
 - Added `Options.LogFile.Critical`.

@@ -5,7 +5,11 @@
  */
 class TracerGroup extends TracerBase {
     /**
-     * @param {TracerOptions} Options - The {@link TracerOptions} object.
+     * @param {Object|TracerOptions} [Options] - The options object. See {@link TracerOptions} for
+     * details about the available options.
+     *
+     * If `Options` is not an instance of {@link TracerOptions}, it is passed to
+     * {@link TracerOptions.Prototype.__New} and the new instance is used as the options.
      *
      * @param {Integer} [FileAction = 1] - One of the following:
      * - 1 : Does not open the log file until `Tracer.Prototype.Log` is called. When the file is
@@ -21,7 +25,14 @@ class TracerGroup extends TracerBase {
      * `FileAction` is ignored if `Options.LogFile.Dir` and/or `Options.LogFile.Name` are not set.
      */
     __New(Options?, FileAction := 1) {
-        this.Options := Options ?? TracerOptions()
+        if IsSet(Options) {
+            if not Options is TracerOptions {
+                Options := TracerOptions(Options)
+            }
+            this.Options := Options
+        } else {
+            this.Options := TracerOptions()
+        }
         this.Index := 0
         if this.HistoryActive {
             this.History := []
@@ -37,9 +48,21 @@ class TracerGroup extends TracerBase {
      * "LogFile", "Out", "StringifyAll", or "Tracer". The value of each property is expected to be
      * an object with options as property : value pairs as descibed by
      * {@link TracerOptions.Prototype.__New}.
+     *
+     * @param {*} [IdValue] - A value to pass to the second parameter of `Options.TracerGroup.IdCallback`.
+     * If unset, no value is passed to that parameter.
+     *
+     * If your code uses the default `Options.TracerGroup.IdCallback`, you can pass a string or
+     * number to `IdValue` and that value is appended to the id.
+     *
+     * @example
+     *  tg := TracerGroup()
+     *  t := tg(, "-name")
+     *  OutputDebug(t.Id "`n") ; 1-name
+     * @
      */
-    Call(Options?) {
-        _tracer := Tracer(this.IdCallback.Call(this), this.Options, this.Tools)
+    Call(Options?, IdValue?) {
+        _tracer := Tracer(this.IdCallback.Call(this, IdValue ?? unset), this.Options, this.Tools)
         if IsSet(Options) {
             _tracer.SetOptionsObj(Options)
         }

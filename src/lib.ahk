@@ -148,8 +148,8 @@ Tracer_QuickSort(Arr, CompareFn := (a, b) => a - b, ArrSizeThreshold := 17, Pivo
     }
 }
 
-Tracer_GetId(Self) {
-    return ++Self.Index
+Tracer_GetId(Self, IdValue?) {
+    return (++Self.Index) (IdValue ?? '')
 }
 
 /**

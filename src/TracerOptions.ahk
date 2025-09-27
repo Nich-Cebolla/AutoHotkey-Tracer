@@ -349,6 +349,8 @@ class TracerOptions {
      * When not in use, {@link Tracer_GetId} is used.
      * - Parameters:
      *   1. The {@link Tracer} object.
+     *   2. A value which your code passes to {@link Tracer.Prototype.Log} or {@link Tracer.Prototype.Out}
+     *   to be passed to this function.
      * - Returns {String|Number} - The id.
      *
      * @param {Integer} [Options.Tracer.IndendLen = 4] - The number of space characters to use with
@@ -381,6 +383,8 @@ class TracerOptions {
      * When not in use, {@link Tracer_GetId} is used.
      * - Parameters:
      *   1. The {@link TracerGroup} object.
+     *   2. A value which your code passes to {@link TracerGroup.Prototype.Call} to be passed to
+     *   this function.
      * - Returns {String|Number} - The id.
      */
     __New(Options?) {

@@ -1,5 +1,5 @@
 
-# AutoHotkey-Tracer - v1.0.1
+# AutoHotkey-Tracer - v1.0.2
 
 An AutoHotkey (AHK) class that simplifies sending structured output via OutputDebug and logging to file.
 
@@ -31,9 +31,9 @@ to your poject in the log output.
 First you define your options object, then pass it to `Tracer`. Whenever your code needs to log
 something to file, it simply calls `TracerObj.Log()`, and `Tracer` handles the rest.
 
-## Tracer.Prototype.Log
+## Tracer.Prototype.Log & Tracer.Prototype.Out
 
-`Tracer.Prototype.Log` has four optional parameters.
+`Tracer.Prototype.Log` and `Tracer.Prototype.Out` have five optional parameters.
 
 1. { String } [ `Message = ""` ] - A message string to include in the output.
 2. { * } [ `SnapshotObj` ] - An object to have its properties and items serialized and included in the output.
@@ -41,6 +41,9 @@ something to file, it simply calls `TracerObj.Log()`, and `Tracer` handles the r
 4. { String | Number } [ `What` ] - A value to pass to the `What` parameter of `Error.Call`. The default value is `-1`
 which typically produces the intended result. The option `Options.DefaultWhat` specifies the default value that
 is used when you do not pass a value to `What`. Passing a value to `What` supercedes that default.
+5. { * } [ `IdValue` ] - A value to pass to the second parameter of `Options.Tracer.IdCallback`. If
+your code is using the default `Options.Tracer.IdCallback`, then `IdValue` is appended directly to
+the end of the numeric id.
 
 **Returns:** { TracerUnit }
 
@@ -54,7 +57,11 @@ accessible from each subsystem which you intend to investigate, so using a globa
 effective choice.
 
 You also will define the starting point(s) at which your code calls `TracerGroupObj.Call` to
-instantiate a `Tracer` object.
+instantiate a `Tracer` object. The reason you should use `TracerGroup` for debugging is because it
+allows you to track specific execution paths; each individual `Tracer` object is assigned an id
+which you should include in the output ("%id%"). You can customize the value of the id by
+setting `Options.TracerGroup.IdCallback` and by leveraging the `IdValue` parameter of
+`TracerGroup.Prototype.Call`.
 
 You also will include `TracerObj.Log()` calls at locations where you want to output information to log,
 and/or `TracerObj.Out()` calls at locations where you want to output information to `OutputDebug`.
@@ -267,6 +274,15 @@ Or, if all of the following are true, then the most recent file is opened and us
 - If the size of the file is less than `Options.LogFile.MaxSize
 
 # Changelog
+
+**2025-09-27**: v1.0.2
+- Added parameter `IdValue` to `Tracer_GetId`, `TracerGroup.Prototype.Call`, `Tracer.Prototype.Log`, and `Tracer.Prototype.Out`.
+- Changed `Tracer_GetId` to handle the new parameter.
+- Changed how `TracerGroup.Prototype.__New` and `Tracer.Prototype.__New` handles the options. It is
+now no longer required to get an instance of `TracerOptions`. If `TracerGroup.Prototype.__New` or
+`Tracer.Prototype.__New` are called passing a regular object to `Options`, the object is passed
+to `TracerOptions.Prototype.__New`.
+- Removed global variable `Tracer_Flag_OnExitStarted` (it was no longer in use).
 
 **2025-09-16**: v1.0.1
 - Added `Options.Log.Critical`.
