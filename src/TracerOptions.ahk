@@ -33,7 +33,7 @@ class TracerOptions {
             '{Snapshot:%le%{%snapshot%}%le%}'
         )
         this.DefaultOutFormat := '{%id% : }%filename%::%line%{ : %what%}{ : %message%}{%le%{%snapshot%}}'
-        this.DefaultJsonProperties := [ 'id', 'file', 'line', 'message', 'nicetime', 'snapshot', 'stack', 'time', 'what' ]
+        this.DefaultJsonProperties := [ 'id', 'file', 'line', 'message', 'nicetime', 'stack', 'time', 'what', 'snapshot' ]
         this.JsonPropertiesMap := Tracer_MapHelper( , 0, 'filename', 'FileName', 'filenamenoext', 'FileNameNoExt', 'nicetime', 'NiceTime')
 
         this.DefaultFormatStr := {

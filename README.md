@@ -1,5 +1,5 @@
 
-# AutoHotkey-Tracer - v1.0.2
+# AutoHotkey-Tracer - v1.0.3
 
 An AutoHotkey (AHK) class that simplifies sending structured output via OutputDebug and logging to file.
 
@@ -274,6 +274,9 @@ Or, if all of the following are true, then the most recent file is opened and us
 - If the size of the file is less than `Options.LogFile.MaxSize
 
 # Changelog
+
+**2025-09-29**: v1.0.3
+- Added `Tracer.Prototype.Both`.
 
 **2025-09-27**: v1.0.2
 - Added parameter `IdValue` to `Tracer_GetId`, `TracerGroup.Prototype.Call`, `Tracer.Prototype.Log`, and `Tracer.Prototype.Out`.
