@@ -87,8 +87,8 @@ class Tracer extends TracerBase {
         ObjSetBase(this.Prototype, TracerUnit.Prototype)
     }
     Both(Message := '', SnapshotObj?, Extra := '', What?, IdValue?) {
-        this.Out(Message, SnapshotObj ?? unset, Extra, What ?? unset, IdValue ?? unset)
-        this.Log(Message, SnapshotObj ?? unset, Extra, What ?? unset, IdValue ?? unset)
+        return { Out: this.Out(Message, SnapshotObj ?? unset, Extra, What ?? unset, IdValue ?? unset)
+          , Log: this.Log(Message, SnapshotObj ?? unset, Extra, What ?? unset, IdValue ?? unset) }
     }
     Close() {
         this.Tools.Close()
