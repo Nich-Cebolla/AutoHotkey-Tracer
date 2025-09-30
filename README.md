@@ -399,12 +399,12 @@ index in the file name, as evaluated within `TracerLogFile.Prototype.GetFiles` u
 If all of the following are true, then the most recent file is opened and used:
 - If the file begins and ends with open and close square brackets
 - If the value of `Options.Log.ToJson` is true
-- If the size of the file is less than `Options.LogFile.MaxSizeand
+- If the size of the file is less than `Options.LogFile.MaxSize`
 
 Or, if all of the following are true, then the most recent file is opened and used:
 - If the file does not begin with or end with open and close square brackets
 - If the value of `Options.Log.ToJson` is false
-- If the size of the file is less than `Options.LogFile.MaxSize
+- If the size of the file is less than `Options.LogFile.MaxSize`
 
 # Changelog
 
