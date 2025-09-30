@@ -4,16 +4,23 @@
 test_Levels()
 
 class test_Levels {
+    static __New() {
+        this.DeleteProp('__New')
+        this.Dir := A_Temp '\Tracer'
+    }
     static Call() {
         OutputDebug('============Readme==================`n')
         this.ReadmeExample()
         OutputDebug('============Json==================`n')
         this.Json()
+        if DirExist(this.Dir) {
+            DirDelete(this.Dir, 1)
+        }
     }
     static Json() {
         options := {
             Log: { ToJson: true }
-          , LogFile: { Dir: A_Temp '\Tracer', Name: 'example' }
+          , LogFile: { Dir: this.Dir, Name: 'example' }
           , Out: {
                 ToJson: true
               , LevelJsonProperties: Map(
@@ -131,7 +138,7 @@ class test_Levels {
                 )
             }
         }
-        options.LogFile := { Dir: A_Temp '\Tracer', Name: 'example' }
+        options.LogFile := { Dir: this.Dir, Name: 'example' }
         t := Tracer(, options, , 2)
         t.OutL(, 'my message to send to OutputDebug') ; Uses `Options.Out.DefaultLevel`
         t.LogL('info', 'my message to log') ; Uses 'info'
