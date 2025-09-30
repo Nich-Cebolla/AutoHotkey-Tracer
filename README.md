@@ -1,7 +1,139 @@
 
-# AutoHotkey-Tracer - v1.0.3
+# AutoHotkey-Tracer - v1.1.0
 
 An AutoHotkey (AHK) class that simplifies sending structured output via OutputDebug and logging to file.
+
+# New in v1.1.0 - Log levels
+
+Here's a good StackOverflow discussion on log levels: https://stackoverflow.com/questions/2031163/when-to-use-the-different-log-levels
+
+1.1.0 introduces log levels through three new methods and six new options.
+
+Methods `Tracer.Prototype.BothL`, `Tracer.Prototype.LogL` and `Tracer.Prototype.OutL` expose
+`Level` as the first parameter.
+
+`Level` corresponds with caller-defined keys in map objects set to `Options.Log.LevelFormat`,
+`Options.Log.LevelJsonProperties`, `Options.Out.LevelFormat`, and `Options.Out.LevelJsonProperties`.
+
+If `Options.Log.ToJson` is true, then `Level` directs `Tracer.Prototype.LogL` which set of json
+properties to use. If `Options.Log.ToJson` is false, then `Level` directs `Tracer.Prototype.LogL` which
+format string to use.
+
+If `Options.Out.ToJson` is true, then `Level` directs `Tracer.Prototype.OutL` which set of json
+properties to use. If `Options.Out.ToJson` is false, then `Level` directs `Tracer.Prototype.OutL` which
+format string to use.
+
+The value passed to `Level` can be included in the format string using format specifier "level", i.e.
+"%level%". It can be included in the json properties list by name, i.e. "level".
+
+TracerOptions.ahk defines default values for each new option.
+
+Below are examples defining the options and calling the methods.
+
+```ahk
+options := {
+    Log: {
+        DefaultLevel: "warn"
+      , LevelFormat: Map(
+            "debug", (
+                "Level: %level%%le%"
+                "{Log id: {%id%}%le%}"
+                "{Timestamp: {%time%}%le%}"
+                "{Time: {%nicetime%}%le%}"
+                "File: %filename% : %line%%le%"
+                "{What: {%what%}%le%}"
+                "{Message: {%message%}%le%}"
+                "{Extra: {%extra%}%le%}"
+                "Stack: %stack%%le%"
+                "{Snapshot:%le%{%snapshot%}%le%}"
+            )
+          , "info", (
+                "{Log id: {%id%}%le%}"
+                "{Time: {%nicetime%}%le%}"
+                "File: %filename% : %line%%le%"
+                "{What: {%what%}%le%}"
+                "{Message: {%message%}%le%}"
+            )
+          , "warn", (
+                "Level: %level%%le%"
+                "{Log id: {%id%}%le%}"
+                "{Timestamp: {%time%}%le%}"
+                "{Time: {%nicetime%}%le%}"
+                "File: %filename% : %line%%le%"
+                "{What: {%what%}%le%}"
+                "{Message: {%message%}%le%}"
+            )
+          , "error", (
+                "Level: %level%%le%"
+                "{Log id: {%id%}%le%}"
+                "{Timestamp: {%time%}%le%}"
+                "{Time: {%nicetime%}%le%}"
+                "File: %filename% : %line%%le%"
+                "{What: {%what%}%le%}"
+                "{Message: {%message%}%le%}"
+                "{Extra: {%extra%}%le%}"
+                "Stack: %stack%%le%"
+                "{Snapshot:%le%{%snapshot%}%le%}"
+            )
+          , "fatal", (
+                "Level: %level%%le%"
+                "{Log id: {%id%}%le%}"
+                "{Timestamp: {%time%}%le%}"
+                "{Time: {%nicetime%}%le%}"
+                "File: %filename% : %line%%le%"
+                "{What: {%what%}%le%}"
+                "{Message: {%message%}%le%}"
+                "{Extra: {%extra%}%le%}"
+                "Stack: %stack%%le%"
+                "{Snapshot:%le%{%snapshot%}%le%}"
+            )
+        )
+      , LevelJsonProperties: Map(
+            "debug", [ "level", "id", "time", "nicetime", "filename", "line", "what", "message", "extra", "stack", "snapshot" ]
+          , "info", [ "id", "nicetime", "filename", "line", "what", "message" ]
+          , "warn", [ "level", "id", "time", "nicetime", "filename", "line", "what", "message" ]
+          , "error", [ "level", "id", "time", "nicetime", "filename", "line", "what", "message", "extra", "stack", "snapshot" ]
+          , "fatal", [ "level", "id", "time", "nicetime", "filename", "line", "what", "message", "extra", "stack", "snapshot" ]
+        )
+    }
+  , Out: {
+        DefaultLevel: "warn"
+      , LevelFormat: Map(
+            "info", (
+                "{Log id: {%id%}%le%}"
+                "{Time: {%nicetime%}%le%}"
+                "File: %filename% : %line%%le%"
+                "{What: {%what%}%le%}"
+                "{Message: {%message%}%le%}"
+            )
+          , "warn", (
+                "Level: %level%%le%"
+                "{Log id: {%id%}%le%}"
+                "{Timestamp: {%time%}%le%}"
+                "{Time: {%nicetime%}%le%}"
+                "File: %filename% : %line%%le%"
+                "{What: {%what%}%le%}"
+                "{Message: {%message%}%le%}"
+            )
+          , "error", (
+                "Level: %level%%le%"
+                "{Log id: {%id%}%le%}"
+                "{Timestamp: {%time%}%le%}"
+                "{Time: {%nicetime%}%le%}"
+                "File: %filename% : %line%%le%"
+                "{What: {%what%}%le%}"
+                "{Message: {%message%}%le%}"
+                "{Extra: {%extra%}%le%}"
+            )
+        )
+    }
+}
+options.LogFile := { Dir: A_Temp "\Tracer", Name: "example" }
+t := Tracer(, options)
+t.OutL(, "my message to send to OutputDebug") ; Uses `Options.Out.DefaultLevel`
+t.LogL("info", "my message to log") ; Uses "info"
+t.BothL(, "my message for both outputs") ; Uses the appropriate default for both Log and Out output.
+```
 
 # Introduction
 
@@ -100,6 +232,7 @@ The following are the format specifiers used by `Tracer`:
 - **filename**: The file name with extension.
 - **filenamenoext**: The file name without extension.
 - **le**: The value set to `Options.LineEnding`.
+- **level**: The value passed to parameter `Level` of `Tracer.Prototype.BothL`, `Tracer.Prototype.LogL`, and `Tracer.Prototype.OutL`.
 - **line**: The line number returned by the error object's "Line" property.
 - **message**: The string your code passed to the "Message" parameter of `Tracer.Prototype.Log` or `Tracer.Prototype.Out`.
 - **nicetime**: The formatted timestamp.
@@ -274,6 +407,42 @@ Or, if all of the following are true, then the most recent file is opened and us
 - If the size of the file is less than `Options.LogFile.MaxSize
 
 # Changelog
+
+**2025-09-29**: v1.1.0
+- General:
+  - Changed the handling of "snapshot" format specifiers. "snapshot" is no longer quoted and no longer
+  paired with the "json" specifier code. It is now paired with "jsonsnapshot". This causes "snapshot"
+  to appear in the json string as a json object.
+- Tracer:
+  - Added `Tracer.Prototype.BothL`, `Tracer.Prototype.LogL`, `Tracer.Prototype.OutL`.
+  - Changed parameter `Id` of `Tracer.Prototype.__New` - `Id` now has a default value of an empty string.
+  Modified the body of the function to accommodate this.
+  - Fixed two issues that occurred when `Options` was unset.
+- TracerBase:
+  - Changed `TracerBase.Prototype.SetOptionsObj` to handle the new options.
+- TracerOptions:
+  - Added six new options:
+    - Log: `Options.Log.DefaultLevel`, `Options.Log.LevelFormat`, `Options.Log.LevelJsonProperties`.
+    - Out: `Options.Out.DefaultLevel`, `Options.Out.LevelFormat`, `Options.Out.LevelJsonProperties`.
+  - Added "level" to `TracerOptions.DefaultFormatSpecifierNames`.
+  - Added "jsonsnapshot" to `Traceroptions.DefaultSpecifierCodes`.
+  - Changed `TracerOptions.DefaultLog` and `TracerOptions.DefaultOut` to include default values for
+  new options.
+- TracerTools:
+  - Added `TracerTools.Prototype.SetLevelFormatLog`, `TracerTools.Prototype.SetLevelFormatOut`,
+  `TracerTools.Prototype.SetLevelJsonPropertiesLog`, `TracerTools.Prototype.SetLevelJsonPropertiesOut`.
+  - Changed `TracerTools.Prototype.GetFormatStrConstructor` to also call `TracerTools.Prototype.SetLevelFormatLog`
+  and `TracerTools.Prototype.SetLevelFormatOut`.
+  - Changed `TracerTools.Prototype.GetFormatStrLog` and `TracerTools.Prototype.GetFormatStrOut` to
+  both return the value that is set to the relevant property.
+- TracerUnit:
+  - Added `TracerUnit.Prototype.LogL` and `TracerUnit.Prototype.OutL`, `TracerUnit.Prototype.__FullId3`,
+  `TracerUnit.Prototype.__FullId4`.
+- Lib:
+  - Added `Tracer_FormatStr_CorrectJsonSnapshot` which corrects the indentation issue when including
+  a snapshot in json output to `OutputDebug`.
+  - Changed `Tracer_GetJsonPropertiesFormatString` to reflect the changes regarding "snapshot"
+  described in the "General" section of this changelog entry.
 
 **2025-09-29**: v1.0.3
 - Added `Tracer.Prototype.Both`.

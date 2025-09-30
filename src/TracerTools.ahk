@@ -4,7 +4,8 @@ class TracerTools {
         this.DeleteProp('__New')
         proto := this.Prototype
         proto.LogFile := proto.FormatStrConstructor := proto.FormatStrOut := proto.FormatStrLog :=
-        proto.Indent := proto.flag_fileAction := ''
+        proto.Indent := proto.flag_fileAction := proto.LogLevelFormat := proto.OutLevelFormat :=
+        ''
     }
     /**
      * @param {TracerOptions} Options - The {@link TracerOptions} object.
@@ -36,26 +37,35 @@ class TracerTools {
         this.SetIndentLen(Options.Tracer.IndentLen)
         this.SetJsonPropertiesLog()
         this.SetJsonPropertiesOut()
+        this.SetLevelJsonPropertiesLog()
+        this.SetLevelJsonPropertiesOut()
     }
     Close() {
         this.LogFile.Close()
     }
     GetFormatStrConstructor() {
-        this.FormatStrConstructor := FormatStrConstructor(this.Options.FormatStr.FormatSpecifierNames, this.Options.FormatStr)
-        if this.Options.HasValidLogFileOptions {
-            this.FormatStrLog := this.FormatStrConstructor.Call(this.Options.Log.Format)
+        options := this.Options
+        this.FormatStrConstructor := FormatStrConstructor(options.FormatStr.FormatSpecifierNames, options.FormatStr)
+        if options.HasValidLogFileOptions {
+            this.FormatStrLog := this.FormatStrConstructor.Call(options.Log.Format)
+            if options.Log.LevelFormat {
+                this.SetLevelFormatLog()
+            }
         }
-        this.FormatStrOut := this.FormatStrConstructor.Call(this.Options.Out.Format)
+        this.FormatStrOut := this.FormatStrConstructor.Call(options.Out.Format)
+        if options.Out.LevelFormat {
+            this.SetLevelFormatOut()
+        }
     }
     GetFormatStrLog() {
         if this.Options.HasValidLogFileOptions {
-            this.FormatStrLog := this.FormatStrConstructor.Call(this.Options.Log.Format)
+            return this.FormatStrLog := this.FormatStrConstructor.Call(this.Options.Log.Format)
         } else {
             Tracer_ThrowInvalidLogFileOptions()
         }
     }
     GetFormatStrOut() {
-        this.FormatStrOut := this.FormatStrConstructor.Call(this.Options.Out.Format)
+        return this.FormatStrOut := this.FormatStrConstructor.Call(this.Options.Out.Format)
     }
     /**
      * @param {String} [Dir] - The name of the directory. Setting `Dir` overwrites the value of
@@ -107,8 +117,48 @@ class TracerTools {
         if IsSet(JsonProperties) {
             this.Options.Out.JsonProperties := JsonProperties
         }
-        this.JsonPropertiesOut := Tracer_GetJsonPropertiesFormatString(this.Options.Out.JsonProperties, this.IndentLen, 0)
+        this.JsonPropertiesOut := Tracer_GetJsonPropertiesFormatString(this.Options.Out.JsonProperties, this.IndentLen, 0, true)
         this.FormatStrJsonOut := this.FormatStrConstructor.Call(this.JsonPropertiesOut)
+    }
+    SetLevelFormatLog(LevelFormat?) {
+        if IsSet(LevelFormat) {
+            this.Options.Log.LevelFormat := LevelFormat
+        }
+        levelFormatLog := this.LevelFormatLog := Map()
+        _formatStrConstructor := this.FormatStrConstructor
+        for level, formatString in this.Options.Log.LevelFormat {
+            levelFormatLog.Set(level, _formatStrConstructor(formatString))
+        }
+    }
+    SetLevelFormatOut(LevelFormat?) {
+        if IsSet(LevelFormat) {
+            this.Options.Out.LevelFormat := LevelFormat
+        }
+        levelFormatOut := this.LevelFormatOut := Map()
+        _formatStrConstructor := this.FormatStrConstructor
+        for level, formatString in this.Options.Out.LevelFormat {
+            levelFormatOut.Set(level, _formatStrConstructor(formatString))
+        }
+    }
+    SetLevelJsonPropertiesLog(LevelJsonProperties?) {
+        if IsSet(LevelJsonProperties) {
+            this.Options.Log.LevelJsonProperties := LevelJsonProperties
+        }
+        levelFormatJsonLog := this.LevelFormatJsonLog := Map()
+        _formatStrConstructor := this.FormatStrConstructor
+        for level, jsonProperties in this.Options.Log.LevelJsonProperties {
+            levelFormatJsonLog.Set(level, _formatStrConstructor(Tracer_GetJsonPropertiesFormatString(jsonProperties, this.IndentLen, 1)))
+        }
+    }
+    SetLevelJsonPropertiesOut(LevelJsonProperties?) {
+        if IsSet(LevelJsonProperties) {
+            this.Options.Out.LevelJsonProperties := LevelJsonProperties
+        }
+        levelFormatJsonOut := this.LevelFormatJsonOut := Map()
+        _formatStrConstructor := this.FormatStrConstructor
+        for level, jsonProperties in this.Options.Out.LevelJsonProperties {
+            levelFormatJsonOut.Set(level, _formatStrConstructor(Tracer_GetJsonPropertiesFormatString(jsonProperties, this.IndentLen, 0, true)))
+        }
     }
 
     IndentLen {

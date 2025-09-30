@@ -1,4 +1,5 @@
-﻿/*
+﻿
+/*
     Github: https://github.com/Nich-Cebolla/AutoHotkey-Tracer
     Author: Nich-Cebolla
     License: MIT
@@ -54,7 +55,7 @@ class Tracer extends TracerBase {
      *
      * See the documentation section "Opening the log file" for a description of "standard processing."
      */
-    __New(Id, Options?, Tools?, FileAction := 1) {
+    __New(Id := '', Options?, Tools?, FileAction := 1) {
         this.Id := Id
         if IsSet(Options) {
             if not Options is TracerOptions {
@@ -70,25 +71,37 @@ class Tracer extends TracerBase {
         if IsSet(Tools) {
             this.Tools := Tools
         } else {
-            this.Tools := TracerTools(Options, FileAction)
+            this.Tools := TracerTools(this.Options, FileAction)
         }
         this.Index := 0
         this.Prototype := {
-            Options: Options
+            Options: this.Options
           , Tools: this.Tools
           , TracerId: Id
           , __Class: TracerUnit.Prototype.__Class
         }
         if this.GroupName {
-            this.Prototype.DefineProp('Id', TracerUnit.Prototype.GetOwnPropDesc('__FullId1'))
+            if Id {
+                this.Prototype.DefineProp('Id', TracerUnit.Prototype.GetOwnPropDesc('__FullId1'))
+            } else {
+                this.Prototype.DefineProp('Id', TracerUnit.Prototype.GetOwnPropDesc('__FullId3'))
+            }
         } else {
-            this.Prototype.DefineProp('Id', TracerUnit.Prototype.GetOwnPropDesc('__FullId2'))
+            if Id {
+                this.Prototype.DefineProp('Id', TracerUnit.Prototype.GetOwnPropDesc('__FullId2'))
+            } else {
+                this.Prototype.DefineProp('Id', TracerUnit.Prototype.GetOwnPropDesc('__FullId4'))
+            }
         }
         ObjSetBase(this.Prototype, TracerUnit.Prototype)
     }
     Both(Message := '', SnapshotObj?, Extra := '', What?, IdValue?) {
         return { Out: this.Out(Message, SnapshotObj ?? unset, Extra, What ?? unset, IdValue ?? unset)
           , Log: this.Log(Message, SnapshotObj ?? unset, Extra, What ?? unset, IdValue ?? unset) }
+    }
+    BothL(Level?, Message := '', SnapshotObj?, Extra := '', What?, IdValue?) {
+        return { Out: this.OutL(Level ?? unset, Message, SnapshotObj ?? unset, Extra, What ?? unset, IdValue ?? unset)
+          , Log: this.LogL(Level ?? unset, Message, SnapshotObj ?? unset, Extra, What ?? unset, IdValue ?? unset) }
     }
     Close() {
         this.Tools.Close()
@@ -136,6 +149,50 @@ class Tracer extends TracerBase {
         }
         return unit
     }
+    LogL(Level := this.Options.Log.DefaultLevel, Message := '', SnapshotObj?, Extra := '', What?, IdValue?) {
+        if IsObject(this.Options.Log.ConditionCallback) {
+            if !this.Options.Log.ConditionCallback.Call(this) {
+                return 0
+            }
+        }
+        if this.Options.Log.Critical {
+            previousCritical := Critical(this.Options.Log.Critical)
+        }
+        if IsObject(this.Tools.LogFile) {
+            if this.Tools.LogFile.flag_onExitStarted {
+                this.__Log_OnExitStarted(Message, SnapshotObj ?? unset, Extra := '', What?)
+                if this.Options.Log.Critical {
+                    Critical(previousCritical)
+                }
+                return
+            }
+            if !IsObject(this.Tools.LogFile.File) {
+                this.Tools.LogFile.Open()
+            }
+        } else {
+            this.Tools.GetLogFile()
+        }
+        unit := Error(Message, What ?? this.DefaultWhat, Extra)
+        unit.Time := A_Now
+        unit.Level := Level
+        ObjSetBase(unit, this.Prototype)
+        if IsSet(SnapshotObj) {
+            if this.Options.Log.ToJson {
+                unit.GetSnapshot(SnapshotObj, 2)
+            } else {
+                unit.GetSnapshot(SnapshotObj, 0)
+            }
+        }
+        unit.UnitId := this.IdCallback.Call(this, IdValue ?? unset)
+        unit.LogL()
+        if this.HistoryActive {
+            this.HistoryAdd(unit)
+        }
+        if this.Options.Log.Critical {
+            Critical(previousCritical)
+        }
+        return unit
+    }
     Open(NewFile := false) {
         this.Tools.Open(NewFile)
     }
@@ -160,6 +217,36 @@ class Tracer extends TracerBase {
         }
         unit.UnitId := this.IdCallback.Call(this, IdValue ?? unset)
         unit.Out()
+        if this.HistoryActive {
+            this.HistoryAdd(unit)
+        }
+        if this.Options.Out.Critical {
+            Critical(previousCritical)
+        }
+        return unit
+    }
+    OutL(Level := this.Options.Out.DefaultLevel, Message := '', SnapshotObj?, Extra := '', What?, IdValue?) {
+        if IsObject(this.Options.Out.ConditionCallback) {
+            if !this.Options.Out.ConditionCallback.Call(this) {
+                return 0
+            }
+        }
+        if this.Options.Out.Critical {
+            previousCritical := Critical(this.Options.Log.Critical)
+        }
+        unit := Error(Message, What ?? this.DefaultWhat, Extra)
+        unit.Time := A_Now
+        unit.Level := Level
+        ObjSetBase(unit, this.Prototype)
+        if IsSet(SnapshotObj) {
+            if this.Options.Out.ToJson {
+                unit.GetSnapshot(SnapshotObj, 2)
+            } else {
+                unit.GetSnapshot(SnapshotObj, 0)
+            }
+        }
+        unit.UnitId := this.IdCallback.Call(this, IdValue ?? unset)
+        unit.OutL()
         if this.HistoryActive {
             this.HistoryAdd(unit)
         }

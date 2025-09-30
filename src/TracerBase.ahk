@@ -145,6 +145,12 @@ class TracerBase {
             if HasProp(inputObj, 'JsonProperties') {
                 this.Tools.SetJsonProperties%optCategory%(inputObj.JsonProperties)
             }
+            if HasProp(inputObj, 'LevelFormat') {
+                this.Tools.SetLevelFormat%optCategory%(inputObj.LevelFormat)
+            }
+            if HasProp(inputObj, 'LevelJsonProperties') {
+                this.Tools.SetLevelJsonProperties%optCategory%(inputObj.LevelJsonProperties)
+            }
             _Set(name) {
                 if HasProp(inputObj, name) {
                     optionsObj.%name% := inputObj.%name%

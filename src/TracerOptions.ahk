@@ -16,11 +16,12 @@
 class TracerOptions {
     static __New() {
         this.DeleteProp('__New')
-        this.DefaultFormatSpecifierNames := [ 'ext', 'extra', 'id', 'file', 'filename', 'filenamenoext', 'le', 'line', 'message', 'nicetime', 'snapshot', 'stack', 'time', 'what' ]
+        this.DefaultFormatSpecifierNames := [ 'ext', 'extra', 'id', 'file', 'filename', 'filenamenoext', 'le', 'level', 'line', 'message', 'nicetime', 'snapshot', 'stack', 'time', 'what' ]
         this.DefaultFormatCodes := ''
         this.DefaultSpecifierCodes := Map(
             'json', Tracer_FormatStr_EscapeJson
           , '-json', Tracer_FormatStr_UnEscapeJson
+          , 'jsonsnapshot', Tracer_FormatStr_CorrectJsonSnapshot
         )
         this.DefaultLogFormat := (
             '{Log id: {%id%}%le%}'
@@ -35,6 +36,122 @@ class TracerOptions {
         this.DefaultOutFormat := '{%id% : }%filename%::%line%{ : %what%}{ : %message%}{%le%{%snapshot%}}'
         this.DefaultJsonProperties := [ 'id', 'file', 'line', 'message', 'nicetime', 'stack', 'time', 'what', 'snapshot' ]
         this.JsonPropertiesMap := Tracer_MapHelper( , 0, 'filename', 'FileName', 'filenamenoext', 'FileNameNoExt', 'nicetime', 'NiceTime')
+        this.DefaultLevelFormatLog := Map(
+            'debug', (
+                'Level: %level%%le%'
+                '{Log id: {%id%}%le%}'
+                '{Timestamp: {%time%}%le%}'
+                '{Time: {%nicetime%}%le%}'
+                'File: %filename% : %line%%le%'
+                '{What: {%what%}%le%}'
+                '{Message: {%message%}%le%}'
+                '{Extra: {%extra%}%le%}'
+                'Stack: %stack%%le%'
+                '{Snapshot:%le%{%snapshot%}%le%}'
+            )
+          , 'info', (
+                '{Log id: {%id%}%le%}'
+                '{Time: {%nicetime%}%le%}'
+                'File: %filename% : %line%%le%'
+                '{What: {%what%}%le%}'
+                '{Message: {%message%}%le%}'
+            )
+          , 'warn', (
+                'Level: %level%%le%'
+                '{Log id: {%id%}%le%}'
+                '{Timestamp: {%time%}%le%}'
+                '{Time: {%nicetime%}%le%}'
+                'File: %filename% : %line%%le%'
+                '{What: {%what%}%le%}'
+                '{Message: {%message%}%le%}'
+            )
+          , 'error', (
+                'Level: %level%%le%'
+                '{Log id: {%id%}%le%}'
+                '{Timestamp: {%time%}%le%}'
+                '{Time: {%nicetime%}%le%}'
+                'File: %filename% : %line%%le%'
+                '{What: {%what%}%le%}'
+                '{Message: {%message%}%le%}'
+                '{Extra: {%extra%}%le%}'
+                'Stack: %stack%%le%'
+                '{Snapshot:%le%{%snapshot%}%le%}'
+            )
+          , 'fatal', (
+                'Level: %level%%le%'
+                '{Log id: {%id%}%le%}'
+                '{Timestamp: {%time%}%le%}'
+                '{Time: {%nicetime%}%le%}'
+                'File: %filename% : %line%%le%'
+                '{What: {%what%}%le%}'
+                '{Message: {%message%}%le%}'
+                '{Extra: {%extra%}%le%}'
+                'Stack: %stack%%le%'
+                '{Snapshot:%le%{%snapshot%}%le%}'
+            )
+        )
+        this.DefaultLevelFormatOut := Map(
+            'debug', (
+                'Level: %level%%le%'
+                '{Log id: {%id%}%le%}'
+                '{Timestamp: {%time%}%le%}'
+                '{Time: {%nicetime%}%le%}'
+                'File: %filename% : %line%%le%'
+                '{What: {%what%}%le%}'
+                '{Message: {%message%}%le%}'
+                '{Extra: {%extra%}%le%}'
+            )
+          , 'info', (
+                '{Log id: {%id%}%le%}'
+                '{Time: {%nicetime%}%le%}'
+                'File: %filename% : %line%%le%'
+                '{What: {%what%}%le%}'
+                '{Message: {%message%}%le%}'
+            )
+          , 'warn', (
+                'Level: %level%%le%'
+                '{Log id: {%id%}%le%}'
+                '{Timestamp: {%time%}%le%}'
+                '{Time: {%nicetime%}%le%}'
+                'File: %filename% : %line%%le%'
+                '{What: {%what%}%le%}'
+                '{Message: {%message%}%le%}'
+            )
+          , 'error', (
+                'Level: %level%%le%'
+                '{Log id: {%id%}%le%}'
+                '{Timestamp: {%time%}%le%}'
+                '{Time: {%nicetime%}%le%}'
+                'File: %filename% : %line%%le%'
+                '{What: {%what%}%le%}'
+                '{Message: {%message%}%le%}'
+                '{Extra: {%extra%}%le%}'
+            )
+          , 'fatal', (
+                'Level: %level%%le%'
+                '{Log id: {%id%}%le%}'
+                '{Timestamp: {%time%}%le%}'
+                '{Time: {%nicetime%}%le%}'
+                'File: %filename% : %line%%le%'
+                '{What: {%what%}%le%}'
+                '{Message: {%message%}%le%}'
+                '{Extra: {%extra%}%le%}'
+            )
+        )
+        this.DefaultLevelJsonPropertiesLog := Map(
+            'debug', [ 'level', 'id', 'time', 'nicetime', 'filename', 'line', 'what', 'message', 'extra', 'stack', 'snapshot' ]
+          , 'info', [ 'id', 'nicetime', 'filename', 'line', 'what', 'message' ]
+          , 'warn', [ 'level', 'id', 'time', 'nicetime', 'filename', 'line', 'what', 'message' ]
+          , 'error', [ 'level', 'id', 'time', 'nicetime', 'filename', 'line', 'what', 'message', 'extra', 'stack', 'snapshot' ]
+          , 'fatal', [ 'level', 'id', 'time', 'nicetime', 'filename', 'line', 'what', 'message', 'extra', 'stack', 'snapshot' ]
+        )
+        this.DefaultLevelJsonPropertiesOut := Map(
+            'debug', [ 'level', 'id', 'time', 'nicetime', 'filename', 'line', 'what', 'message', 'extra' ]
+          , 'info', [ 'id', 'nicetime', 'filename', 'line', 'what', 'message' ]
+          , 'warn', [ 'level', 'id', 'time', 'nicetime', 'filename', 'line', 'what', 'message' ]
+          , 'error', [ 'level', 'id', 'time', 'nicetime', 'filename', 'line', 'what', 'message', 'extra' ]
+          , 'fatal', [ 'level', 'id', 'time', 'nicetime', 'filename', 'line', 'what', 'message', 'extra' ]
+        )
 
         this.DefaultFormatStr := {
             Callback: Tracer_FormatStrCallback
@@ -47,7 +164,10 @@ class TracerOptions {
         this.DefaultLog := {
             ConditionCallback: ''
           , Critical: -1
+          , DefaultLevel: 'info'
           , Format: this.DefaultLogFormat
+          , LevelFormat: this.DefaultLevelFormatLog
+          , LevelJsonProperties: this.DefaultLevelJsonPropertiesLog
           , ToJson: false
           , JsonProperties: this.DefaultJsonProperties
         }
@@ -66,7 +186,10 @@ class TracerOptions {
         this.DefaultOut := {
             ConditionCallback: ''
           , Critical: -1
+          , DefaultLevel: 'info'
           , Format: this.DefaultOutFormat
+          , LevelFormat: this.DefaultLevelFormatOut
+          , LevelJsonProperties: this.DefaultLevelJsonPropertiesOut
           , ToJson: false
           , JsonProperties: this.DefaultJsonProperties
         }
@@ -211,8 +334,20 @@ class TracerOptions {
      * a nonzero value if {@link Tracer.Prototype.Log} should complete the log action, or the function
      * should return zero or an empty string if {@link Tracer.Prototype.Log} should skip the log action.
      *
+     * @param {String} [Options.Log.DefaultLevel = ""] - The default level to use when calling
+     * {@link Tracer.Prototype.LogL}.
+     *
      * @param {String} [Options.Log.Format = TracerOptions.DefaultLogFormat] - The log format
      * string. See the documentation for more details.
+     *
+     * @param {Map} [Options.Log.LevelFormat = ""] - If set, a `Map` object where the keys are caller-defined
+     * names of "log levels" (e.g. warning, error, etc.) and the values are format strings. See
+     * {@link Tracer.Prototype.LogL} and {@link Tracer.Prototype.OutL} for more info.
+     *
+     * @param {Map} [Options.Log.LevelJsonProperties = ""] - If set, a `Map` object where the keys
+     * are caller-defined names of "log levels" (e.g. warning, error, etc.) and the values are arrays
+     * of format specifier names as described by {@link Options.Log.JsonProperties}. See
+     * {@link Tracer.Prototype.LogL} and {@link Tracer.Prototype.OutL} for more info.
      *
      * @param {Boolean} [Options.Log.ToJson = false] - If true, the log file is written as a json
      * array of objects, where each object represents one call to {@link Tracer.Prototype.Log}. When
@@ -290,8 +425,20 @@ class TracerOptions {
      * a nonzero value if {@link Tracer.Prototype.Out} should complete the output action, or the function
      * should return zero or an empty string if {@link Tracer.Prototype.Out} should skip the output action.
      *
+     * @param {String} [Options.Out.DefaultLevel = ""] - The default level to use when calling
+     * {@link Tracer.Prototype.OutL}.
+     *
      * @param {String} [Options.Out.Format = TracerOptions.DefaultLogFormat] - The format
      * string used with {@link Tracer.Prototype.Out`}. See the documentation for more details.
+     *
+     * @param {Map} [Options.Out.LevelFormat = ""] - If set, a `Map` object where the keys are caller-defined
+     * names of "output LevelFormat" (e.g. warning, error, etc.) and the values are format strings. See
+     * {@link Tracer.Prototype.LogL} and {@link Tracer.Prototype.OutL} for more info.
+     *
+     * @param {Map} [Options.Out.LevelJsonProperties = ""] - If set, a `Map` object where the keys
+     * are caller-defined names of "log levels" (e.g. warning, error, etc.) and the values are arrays
+     * of format specifier names as described by {@link Options.Out.JsonProperties}. See
+     * {@link Tracer.Prototype.LogL} and {@link Tracer.Prototype.OutL} for more info.
      *
      * @param {Boolean} [Options.Out.ToJson = false] - If true, {@link Tracer.Prototype.Out} writes
      * a json string to `OutputDebug`. When true, `Options.Out.Format` is ignored. If false,

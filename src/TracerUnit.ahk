@@ -26,11 +26,33 @@ class TracerUnit extends Error {
         }
         this.Tools.LogFile.CheckFile()
     }
+    LogL() {
+        if this.Options.Log.ToJson {
+            if this.Tools.LogFile.flag_newJsonFile {
+                this.Tools.LogFile.File.Write('[')
+                this.Tools.LogFile.flag_newJsonFile := false
+            } else {
+                this.Tools.LogFile.File.Pos -= this.Tools.LogFile.EndByteCount
+                this.Tools.LogFile.File.Write(',')
+            }
+            this.Tools.LogFile.File.Write(this.Le this.Tools.LevelFormatJsonLog.Get(this.Level).Call(this) this.Le ']' this.Le)
+        } else {
+            this.Tools.LogFile.File.Write(this.Tools.LevelFormatLog.Get(this.Level).Call(this) this.Le)
+        }
+        this.Tools.LogFile.CheckFile()
+    }
     Out() {
         if this.Options.Out.ToJson {
             OutputDebug(this.Tools.FormatStrJsonOut.Call(this) this.Le)
         } else {
             OutputDebug(this.Tools.FormatStrOut.Call(this) this.Le)
+        }
+    }
+    OutL() {
+        if this.Options.Out.ToJson {
+            OutputDebug(this.Tools.LevelFormatJsonOut.Get(this.Level).Call(this) this.Le)
+        } else {
+            OutputDebug(this.Tools.LevelFormatOut.Get(this.Level).Call(this) this.Le)
         }
     }
     Ext {
@@ -56,4 +78,6 @@ class TracerUnit extends Error {
     NiceTime => FormatTime(this.Time, this.Options.Tracer.TimeFormat)
     __FullId1 => this.Options.TracerGroup.GroupName ':' this.Tracerid ':' this.UnitId
     __FullId2 => this.TracerId ':' this.UnitId
+    __FullId3 => this.Options.TracerGroup.GroupName ':' this.UnitId
+    __FullId4 => this.UnitId
 }

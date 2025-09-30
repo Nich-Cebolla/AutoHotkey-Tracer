@@ -306,7 +306,7 @@ Tracer_ThrowUnexpectedOptionName(Name, n := 2) {
     throw PropertyError('Unexpected option name.', n, Name)
 }
 
-Tracer_GetJsonPropertiesFormatString(JsonProperties, IndentLen, InitialIndent) {
+Tracer_GetJsonPropertiesFormatString(JsonProperties, IndentLen, InitialIndent, Out := false) {
     ind := ''
     loop indentLen {
         ind .= '`s'
@@ -321,16 +321,45 @@ Tracer_GetJsonPropertiesFormatString(JsonProperties, IndentLen, InitialIndent) {
     VarSetStrCapacity(&s, 256)
     s .= baseIndent '\{%le%'
     propsMap := TracerOptions.JsonPropertiesMap
-    for prop in JsonProperties {
-        s .= '{' baseIndent ind '"'
-        if propsMap.Has(prop) {
-            s .= propsMap.Get(prop)
-        } else {
-            s .= StrTitle(prop)
+    if Out {
+        for prop in JsonProperties {
+            s .= '{' baseIndent ind '"'
+            if propsMap.Has(prop) {
+                s .= propsMap.Get(prop)
+            } else {
+                s .= StrTitle(prop)
+            }
+            if prop = 'snapshot' {
+                ; jsonsnapshot calls Tracer_FormatStr_CorrectJsonSnapshot
+                s .= '": {%' prop ':jsonsnapshot%}%le%}'
+            } else {
+                s .= '": "{%' prop ':json%}"%le%}'
+            }
         }
-        s .= '": "{%' prop ':json%}"%le%}'
+    } else {
+        for prop in JsonProperties {
+            s .= '{' baseIndent ind '"'
+            if propsMap.Has(prop) {
+                s .= propsMap.Get(prop)
+            } else {
+                s .= StrTitle(prop)
+            }
+            if prop = 'snapshot' {
+                s .= '": {%' prop '%}%le%}'
+            } else {
+                s .= '": "{%' prop ':json%}"%le%}'
+            }
+        }
     }
     return s baseIndent '\}'
+}
+
+Tracer_FormatStr_CorrectJsonSnapshot(Str, tracerUnitObj, *) {
+    if tracerUnitObj.Options.Tracer.IndentLen {
+        return RegExReplace(Str, 'm)^' tracerUnitObj.Tools.Indent[1], '')
+    } else {
+        return Str
+    }
 }
 
 class Tracer_MapHelper extends Map {

@@ -1,4 +1,40 @@
 
+**2025-09-29**: v1.1.0
+- General:
+  - Changed the handling of "snapshot" format specifiers. "snapshot" is no longer quoted and no longer
+  paired with the "json" specifier code. It is now paired with "jsonsnapshot". This causes "snapshot"
+  to appear in the json string as a json object.
+- Tracer:
+  - Added `Tracer.Prototype.BothL`, `Tracer.Prototype.LogL`, `Tracer.Prototype.OutL`.
+  - Changed parameter `Id` of `Tracer.Prototype.__New` - `Id` now has a default value of an empty string.
+  Modified the body of the function to accommodate this.
+  - Fixed two issues that occurred when `Options` was unset.
+- TracerBase:
+  - Changed `TracerBase.Prototype.SetOptionsObj` to handle the new options.
+- TracerOptions:
+  - Added six new options:
+    - Log: `Options.Log.DefaultLevel`, `Options.Log.LevelFormat`, `Options.Log.LevelJsonProperties`.
+    - Out: `Options.Out.DefaultLevel`, `Options.Out.LevelFormat`, `Options.Out.LevelJsonProperties`.
+  - Added "level" to `TracerOptions.DefaultFormatSpecifierNames`.
+  - Added "jsonsnapshot" to `Traceroptions.DefaultSpecifierCodes`.
+  - Changed `TracerOptions.DefaultLog` and `TracerOptions.DefaultOut` to include default values for
+  new options.
+- TracerTools:
+  - Added `TracerTools.Prototype.SetLevelFormatLog`, `TracerTools.Prototype.SetLevelFormatOut`,
+  `TracerTools.Prototype.SetLevelJsonPropertiesLog`, `TracerTools.Prototype.SetLevelJsonPropertiesOut`.
+  - Changed `TracerTools.Prototype.GetFormatStrConstructor` to also call `TracerTools.Prototype.SetLevelFormatLog`
+  and `TracerTools.Prototype.SetLevelFormatOut`.
+  - Changed `TracerTools.Prototype.GetFormatStrLog` and `TracerTools.Prototype.GetFormatStrOut` to
+  both return the value that is set to the relevant property.
+- TracerUnit:
+  - Added `TracerUnit.Prototype.LogL` and `TracerUnit.Prototype.OutL`, `TracerUnit.Prototype.__FullId3`,
+  `TracerUnit.Prototype.__FullId4`.
+- Lib:
+  - Added `Tracer_FormatStr_CorrectJsonSnapshot` which corrects the indentation issue when including
+  a snapshot in json output to `OutputDebug`.
+  - Changed `Tracer_GetJsonPropertiesFormatString` to reflect the changes regarding "snapshot"
+  described in the "General" section of this changelog entry.
+
 **2025-09-29**: v1.0.3
 - Added `Tracer.Prototype.Both`.
 
