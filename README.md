@@ -158,7 +158,7 @@ with the output). `StringifyAll` itself is dependant on
 
 `Tracer` is great for general logging to file. It has built-in json support if you use json, or you
 can define your own custom format string which allows you to include only the information important
-to your poject in the log output.
+to your project in the log output.
 
 First you define your options object, then pass it to `Tracer`. Whenever your code needs to log
 something to file, it simply calls `TracerObj.Log()`, and `Tracer` handles the rest.
