@@ -200,7 +200,7 @@ class TracerOptions {
           , ExcludeProps: '__Init,Prototype'
         }
         this.DefaultTracer := {
-            DefaultWhat: -1
+            DefaultWhat: -2
           , HistoryActive: false
           , HistoryMaxItems: 10000
           , HistoryReleaseRatio: 0.05
@@ -475,7 +475,7 @@ class TracerOptions {
      * @param {Object} [Options.Tracer] - An options object specifying options related to
      * {@link Tracer}.
      *
-     * @param {Integer|String} [Options.Tracer.DefaultWhat = -1] The default value to pass to the
+     * @param {Integer|String} [Options.Tracer.DefaultWhat = -2] The default value to pass to the
      * `What` parameter of `Error.Call` when your code calls {@link Tracer.Prototype.Log} and
      * {@link Tracer.Prototype.Out}. Both methods also expose the option as the fourth parameter.
      * If the fourth parameter is set, that value is passed to `Error.Call`. If the fourth

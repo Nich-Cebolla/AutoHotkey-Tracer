@@ -170,8 +170,8 @@ something to file, it simply calls `TracerObj.Log()`, and `Tracer` handles the r
 1. { String } [ `Message = ""` ] - A message string to include in the output.
 2. { * } [ `SnapshotObj` ] - An object to have its properties and items serialized and included in the output.
 3. { String } [ `Extra = ""` ] - A string with extra information to include in the output separate from `Message`.
-4. { String | Number } [ `What` ] - A value to pass to the `What` parameter of `Error.Call`. The default value is `-1`
-which typically produces the intended result. The option `Options.DefaultWhat` specifies the default value that
+4. { String | Number } [ `What` ] - A value to pass to the `What` parameter of `Error.Call`. The default value is `-2`
+which typically produces the intended result. The option `Options.Tracer.DefaultWhat` specifies the default value that
 is used when you do not pass a value to `What`. Passing a value to `What` supercedes that default.
 5. { * } [ `IdValue` ] - A value to pass to the second parameter of `Options.Tracer.IdCallback`. If
 your code is using the default `Options.Tracer.IdCallback`, then `IdValue` is appended directly to
